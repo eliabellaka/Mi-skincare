@@ -150,3 +150,27 @@ html,body{background:#fff8fc!important;color:#512840!important;overflow-x:hidden
 .skip-link{position:fixed;left:14px;top:12px;z-index:1000;transform:translateY(-180%);padding:10px 15px;border-radius:999px;background:#6f294d;color:#fff;font-weight:700;box-shadow:0 8px 20px rgba(81,40,64,.25);transition:transform .18s ease}.skip-link:focus{transform:translateY(0);outline:3px solid #f19ac0;outline-offset:3px}
 button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #d34f8a;outline-offset:3px}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto!important}*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}.product:hover,.study-card:hover,.summary-card:hover,.check-row:hover{transform:none!important}}
+
+
+/* Card containment repair */
+*,*::before,*::after{box-sizing:border-box}
+img{max-width:100%;height:auto}
+.workspace,main,#content,.home-summary,.studies-view,.calendar-view,.bar,.tools,.grid,.summary-grid{min-width:0;max-width:100%}
+.product,.listitem,.setting,.study-card,.summary-card,.stat,.ritual-card,.week-preview,.checklist-section,.event-row,.ritual-step,.calendar-day{min-width:0;max-width:100%}
+.product,.listitem,.setting,.study-card,.summary-card,.stat,.ritual-card,.week-preview,.checklist-section,.event-row,.ritual-step,.calendar-day{overflow:hidden}
+.product h3,.study-title h3,.summary-card strong,.event-row-info strong,.bar h2,.week-event strong{overflow-wrap:anywhere;word-break:break-word}
+.card-actions,.event-row-actions{display:flex;flex-wrap:wrap;min-width:0;gap:7px}
+.card-actions>* ,.event-row-actions>*{min-width:0;max-width:100%}
+.grid,.summary-grid{background:transparent;border:0;gap:16px}
+@media(max-width:760px){
+  .grid,.summary-grid{grid-template-columns:1fr!important;background:transparent;border:0;gap:12px}
+  .product,.summary-card{width:100%;margin:0}
+  .product .pic{width:100%;max-width:100%;overflow:hidden}
+  .product .pic img{display:block;width:100%;height:100%;object-fit:cover}
+  .card-actions{align-items:stretch}
+  .card-actions>*{flex:1 1 auto}
+  .summary-card{min-height:0}
+  .event-row{align-items:flex-start;flex-direction:column}
+  .event-row-actions{width:100%}
+  .event-row-actions>*{flex:1 1 auto}
+}
