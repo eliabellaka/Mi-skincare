@@ -174,3 +174,14 @@ img{max-width:100%;height:auto}
   .event-row-actions{width:100%}
   .event-row-actions>*{flex:1 1 auto}
 }
+
+
+/* Mood card spacing */
+.mood-card{margin:20px 0 0;padding:22px 24px 24px;border:1px dashed #e393b6;border-radius:21px;background:linear-gradient(145deg,#fff1f7,#fffafd);box-sizing:border-box}
+.mood-card h3{margin:0 0 5px}
+.mood-card p{margin:0 0 14px}
+.mood-options{padding:0;display:flex;flex-wrap:wrap;gap:8px}
+@media(max-width:760px){
+  .mood-card{margin-top:16px;padding:18px 16px 20px;border-radius:18px}
+  .mood-options{gap:7px}
+}
