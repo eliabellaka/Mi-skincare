@@ -185,3 +185,9 @@ img{max-width:100%;height:auto}
   .mood-card{margin-top:16px;padding:18px 16px 20px;border-radius:18px}
   .mood-options{gap:7px}
 }
+
+
+/* Remove inherited divider lines */
+.ritual-steps{border-top:0!important;border-bottom:0!important}
+.stats{border-top:0!important;border-bottom:0!important}
+.ritual-step{border:1px solid #efbfd3!important}
