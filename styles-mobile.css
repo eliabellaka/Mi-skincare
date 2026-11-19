@@ -191,3 +191,8 @@ img{max-width:100%;height:auto}
 .ritual-steps{border-top:0!important;border-bottom:0!important}
 .stats{border-top:0!important;border-bottom:0!important}
 .ritual-step{border:1px solid #efbfd3!important}
+
+
+/* Quantity modes */
+.quantity-input{display:flex;gap:7px;align-items:stretch}.quantity-input input{flex:1;min-width:0}.quantity-input select{width:145px;min-width:0}.quantity-help{display:block;margin-top:5px;color:#a16b82;font-size:12px}.quantity-percent{display:inline-flex;align-items:center;justify-content:center;min-width:58px;padding:4px 11px;border-radius:999px;background:#ffe1ed;border:1px solid #eca4c3;color:#a43b6d;font-weight:700;font-size:14px}
+@media(max-width:560px){.quantity-input{flex-direction:column}.quantity-input select{width:100%}}
