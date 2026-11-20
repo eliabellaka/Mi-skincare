@@ -1,7 +1,1429 @@
-(()=>{'use strict';const KEY='pinkShelf.v1';const defaultCategories=['Crema hidratante','Sérum','Mascarilla facial','Agua micelar','Agua micelar bifásica','Limpiador','Protector solar','Tónico','Exfoliante facial','Contorno de ojos','Bálsamo labial','Champú','Acondicionador','Mascarilla capilar','Aceite capilar','Tratamiento capilar','Gel de ducha','Jabón corporal','Exfoliante corporal','Crema corporal','Aceite corporal','Desodorante','Perfume','Colonia','Bruma corporal','Maquillaje','Base y corrector','Colorete','Iluminador','Sombras','Máscara de pestañas','Labios','Cuidado de uñas','Higiene bucal','Higiene íntima','Depilación','Accesorios','Otros'];let items=[];let tab='home',editing=null;let routines=[];const studySubjects=[['xarxes','Xarxes de dades','🌐'],['mates','Mates discreta','∑'],['fisica','Física','⚛️'],['computadors','Computadors','💻'],['estadistica','Estadística','📊'],['programacion','Programación','</>']];let studyTasks={};const $=id=>document.getElementById(id);const money=n=>new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR'}).format(Number(n)||0);const safeUrl=s=>{try{let u=new URL(s);return ['https:','http:'].includes(u.protocol)?u.href:''}catch{return ''}};function read(){try{const x=JSON.parse(localStorage.getItem(KEY)||'[]');items=Array.isArray(x)?x.filter(v=>v&&typeof v==='object').map(clean):[]}catch{items=[]}}function clean(v){const legacyPercent=v.quantityMode==='percent';const fullUnits=legacyPercent?0:Math.max(0,Math.min(99999,Math.floor(Number(v.quantity)||0)));const partial=legacyPercent?Math.round(Number(v.quantity)||0):Math.max(0,Math.min(100,Math.round(Number(v.quantityPercent)||0)));return {id:String(v.id||crypto.randomUUID()),name:String(v.name||'').slice(0,110),brand:String(v.brand||'').slice(0,90),category:String(v.category||'Otros').slice(0,70),price:Math.max(0,Math.min(999999,Number(v.price)||0)),quantityMode:'mixed',quantity:fullUnits,quantityPercent:Math.max(0,Math.min(100,partial)),url:safeUrl(v.url||''),image:safeUrl(v.image||''),notes:String(v.notes||'').slice(0,500),status:v.status==='wishlist'?'wishlist':'collection',needed:Boolean(v.needed)&&v.status!=='wishlist'}}function save(){try{localStorage.setItem(KEY,JSON.stringify(items))}catch{alert('No se han podido guardar los cambios. Exporta una copia de seguridad y revisa el espacio del navegador.')}}function e(tag,cls,txt){let n=document.createElement(tag);if(cls)n.className=cls;if(txt!==undefined)n.textContent=txt;return n}function btn(txt,fn,cls='mini'){let n=e('button',cls,txt);n.type='button';n.addEventListener('click',fn);return n}function toast(s){const old=document.querySelector('.toast');old?.remove();const n=e('div','toast',s);n.setAttribute('role','status');n.setAttribute('aria-live','polite');document.body.append(n);setTimeout(()=>n.remove(),2500)}function setTab(t){tab=t;document.querySelectorAll('[data-tab]').forEach(b=>{b.classList.toggle('active',b.dataset.tab===t);b.setAttribute('aria-pressed',String(b.dataset.tab===t))});$('sectionTitle').textContent={home:'Inicio',collection:'Mi colección ♡',need:'Lista de reposición 🛍️',wishlist:'Mi wishlist 🎀',studies:'Mis estudios 📚',calendar:'Mi calendario',settings:'Ajustes y copias ♡'}[t];$('addBtn').classList.toggle('hidden',t==='home'||t==='settings'||t==='studies');$('routineBtn').classList.toggle('hidden',t!=='calendar');$('addBtn').textContent=t==='wishlist'?'＋ Añadir deseo':t==='calendar'?'＋ Añadir evento':'＋ Añadir producto';$('controls').classList.toggle('hidden',t==='home'||t==='settings'||t==='calendar'||t==='studies');$('mainBar').classList.toggle('hidden',t==='home');document.querySelectorAll('.home-only').forEach(n=>n.classList.toggle('hidden',t!=='home'));$('search').value='';render()}const STUDY_KEY='misPontigues.studies.v1';function readStudies(){try{const saved=JSON.parse(localStorage.getItem(STUDY_KEY)||'{}');studyTasks=saved&&typeof saved==='object'?saved:{}}catch{studyTasks={}}studySubjects.forEach(([id])=>{if(!Array.isArray(studyTasks[id]))studyTasks[id]=[]})}function saveStudies(){localStorage.setItem(STUDY_KEY,JSON.stringify(studyTasks))}function studyView(box){const wrap=e('div','studies-view');const intro=e('div','studies-intro');intro.append(e('h2','','Mis estudios'),e('p','','Tus asignaturas y tus tareas, todo en un mismo sitio.'));const grid=e('div','studies-grid');studySubjects.forEach(([id,name,icon])=>{const tasks=studyTasks[id]||[];const card=e('section','study-card');const head=e('div','study-card-head');const title=e('div','study-title');title.append(e('span','study-icon',icon),e('h3','',name));const done=tasks.filter(x=>x.done).length;head.append(title,e('span','study-progress',done+' / '+tasks.length));card.append(head);const list=e('div','study-list');if(!tasks.length)list.append(e('p','study-empty','Añade tu primera tarea abajo ♡'));tasks.forEach(task=>{const row=e('label','study-task'+(task.done?' done':''));const check=e('input');check.type='checkbox';check.checked=Boolean(task.done);check.addEventListener('change',()=>{task.done=check.checked;saveStudies();row.classList.toggle('done',task.done);head.querySelector('.study-progress').textContent=(studyTasks[id]||[]).filter(x=>x.done).length+' / '+(studyTasks[id]||[]).length;toast(task.done?'Tarea hecha ♡':'Tarea pendiente')});row.append(check,e('span','',task.text),btn('×',()=>{studyTasks[id]=studyTasks[id].filter(x=>x.id!==task.id);saveStudies();render()},'study-delete'));list.append(row)});card.append(list);const form=e('form','study-add');const input=e('input');input.type='text';input.placeholder='Añadir tarea...';input.maxLength=120;input.setAttribute('aria-label','Nueva tarea para '+name);const add=e('button','mini primary','Añadir');add.type='submit';form.append(input,add);form.addEventListener('submit',ev=>{ev.preventDefault();const text=input.value.trim();if(!text)return;studyTasks[id].push({id:crypto.randomUUID(),text,done:false});saveStudies();render();toast('Tarea añadida a '+name+' ♡')});card.append(form);grid.append(card)});wrap.append(intro,grid);box.append(wrap)}function categories(){const chosen=$('categoryFilter').value;const all=[...new Set([...defaultCategories,...items.map(p=>p.category).filter(Boolean)])].sort((a,b)=>a.localeCompare(b,'es'));$('categoryFilter').replaceChildren(new Option('Todas las categorías',''),...all.map(x=>new Option(x,x)));if(all.includes(chosen))$('categoryFilter').value=chosen;$('categories').replaceChildren(...all.map(x=>{const n=e('option');n.value=x;return n}))}function quantityBows(n,percent=0){const wrap=e('div','quantity-display');const full=Math.max(0,Math.min(20,Math.floor(Number(n)||0)));const partial=Math.max(0,Math.min(100,Math.round(Number(percent)||0)));wrap.setAttribute('aria-label','Cantidad: '+full+' bote(s)'+(partial?' y '+partial+'% de otro bote':''));const label=e('span','quantity-label','Cantidad');const bows=e('span','quantity-bows');for(let i=0;i<full;i++)bows.append(e('span','quantity-bow','୨୧'));if(!full&&!partial)bows.append(e('span','quantity-zero','0'));wrap.append(label,bows);if(partial)wrap.append(e('span','quantity-percent','+ '+partial+'%'));return wrap}function render(){categories();$('countProducts').textContent=items.filter(x=>x.status==='collection').length;$('countNeed').textContent=items.filter(x=>x.needed&&x.status==='collection').length;$('countWishlist').textContent=money(items.filter(x=>x.status==='wishlist').reduce((a,b)=>a+b.price,0));const box=$('content');box.replaceChildren();renderWeekPreview();if(tab==='home'){homeView(box);return}if(tab==='settings'){settings(box);return}if(tab==='studies'){studyView(box);return}if(tab==='calendar'){calendarView(box);return}const term=$('search').value.trim().toLocaleLowerCase('es');const cat=$('categoryFilter').value;let shown=items.filter(p=>(tab==='wishlist'?p.status==='wishlist':tab==='need'?p.status==='collection'&&p.needed:p.status==='collection')&&(!cat||p.category===cat)&&(!term||[p.name,p.brand,p.category,p.notes].join(' ').toLocaleLowerCase('es').includes(term)));if(!shown.length){const x=e('div','empty');x.append(e('div','flower','🌸'),e('h3','',tab==='need'?'¡Nada pendiente de reponer!':tab==='wishlist'?'Tu wishlist te está esperando ♡':'Tu estantería está esperando ♡'),e('p','',tab==='need'?'Marca «Reponer» en alguno de tus productos.':'Añade algo que te guste con el botón de arriba.'));box.append(x);return}if(tab==='need'){const list=e('div','list');shown.forEach(p=>{const line=e('div','listitem');const info=e('div','info');info.append(e('h3','',p.name),e('div','muted',[p.brand,p.category].filter(Boolean).join(' · ')));line.append(e('span','pill','🛍️'),info,e('span','price',money(p.price)));if(p.url){const a=e('a','mini','Ver tienda ↗');a.href=p.url;a.target='_blank';a.rel='noopener noreferrer';line.append(a)}line.append(btn('✓ Ya lo compré',()=>{p.needed=false;p.quantity+=1;save();render();toast('¡Reposición completada! ♡')}),btn('Editar',()=>openForm(p)));list.append(line)});box.append(list);return}const grid=e('div','grid');shown.forEach(p=>{const card=e('article','product');const pic=e('div','pic');if(p.image){const img=e('img');img.src=p.image;img.alt='Foto de '+p.name;img.loading='lazy';img.referrerPolicy='no-referrer';img.onerror=()=>pic.replaceChildren(e('span','','🧴'));pic.append(img)}else pic.append(e('span','',p.status==='wishlist'?'🎁':'🧴'));card.append(pic);const top=e('div','row');top.append(e('span','pill',p.category||'Otros'));if(p.status==='collection'&&p.needed)top.append(e('span','pill','🛍️ Reponer'));card.append(top,e('div','brand',p.brand||'Sin marca'),e('h3','',p.name));if(p.notes)card.append(e('div','muted',p.notes));if(p.status==='collection')card.append(quantityBows(p.quantity,p.quantityPercent));else card.append(e('div','muted','En tu lista de deseos'));card.append(e('div','price',money(p.price)));const actions=e('div','card-actions');if(p.status==='collection'){actions.append(btn(p.needed?'✓ En lista':'＋ Reponer',()=>{p.needed=!p.needed;save();render()}))}else{actions.append(btn('✓ Comprado',()=>{p.status='collection';p.quantity=Math.max(1,p.quantity);p.quantityPercent=0;p.quantityMode='mixed';p.needed=false;save();render();toast('¡Añadido a tu colección! ♡')}))}if(p.url){const a=e('a','mini','Comprar ↗');a.href=p.url;a.target='_blank';a.rel='noopener noreferrer';actions.append(a)}actions.append(btn('Editar',()=>openForm(p)),btn('Eliminar',()=>{if(confirm('¿Eliminar «'+p.name+'»?')){items=items.filter(x=>x.id!==p.id);save();render() }},'mini danger'));card.append(actions);grid.append(card)});box.append(grid)}function parsePrice(raw){if(raw===undefined||raw===null)return '';if(typeof raw==='object')raw=raw.value??raw.content??raw.text??raw.amount??raw.price??'';let s=String(raw).replace(/[^0-9,.]/g,'').trim();if(!s)return '';if(s.includes(',')&&s.includes('.')){s=s.lastIndexOf(',')>s.lastIndexOf('.')?s.replace(/\./g,'').replace(',','.'):s.replace(/,/g,'')}else if(s.includes(',')){s=s.replace(',','.')}const n=Number(s);return Number.isFinite(n)?n.toFixed(2):''}function findLinkPrice(data){const candidates=[data.price,data['product:price:amount'],data['og:price:amount'],data['product:price'],data['og:price'],data['price:amount'],data['price:currency']&&data.price];for(const candidate of candidates){const value=parsePrice(candidate);if(value)return value}return ''}async function autofillLink(){const link=safeUrl($('url').value.trim());const status=$('linkStatus');if(!link){status.textContent='Pega un enlace válido para buscar sus datos.';status.className='link-status error';return}status.textContent='Buscando los datos del artículo…';status.className='link-status loading';$('fetchLinkBtn').disabled=true;try{const response=await fetch('https://api.microlink.io?url='+encodeURIComponent(link)+'&meta=true');const result=await response.json();const data=result.data||{};const title=String(data.title||'').trim();const price=findLinkPrice(data);const image=typeof data.image==='string'?data.image:(data.image?.url||'');if(title&&!$('name').value.trim())$('name').value=title.slice(0,110);if(price&&!$('price').value)$('price').value=price;if(image&&!$('image').value)$('image').value=image;if(title||price||image){const found=[title?'nombre':'',price?'precio':'',image?'imagen':''].filter(Boolean).join(', ');status.textContent='Listo: he encontrado '+found+'. Puedes editarlo antes de guardar.';status.className='link-status ok'}else{status.textContent='No he encontrado datos automáticos; puedes rellenarlos a mano.';status.className='link-status error'}}catch{status.textContent='No se pudo consultar este enlace; rellénalo a mano si hace falta.';status.className='link-status error'}finally{$('fetchLinkBtn').disabled=false}}function openForm(p){editing=p?.id||null;$('productForm').reset();$('modalTitle').textContent=p?'Editar artículo ♡':(tab==='wishlist'?'Nuevo deseo ♡':'Nuevo artículo ♡');$('status').value=p?.status||(tab==='wishlist'?'wishlist':'collection');$('name').value=p?.name||'';$('brand').value=p?.brand||'';$('category').value=p?.category||'';$('price').value=p?.price??'';$('quantity').value=p?.quantityMode==='percent'?0:(p?.quantity??1);$('quantityPercent').value=p?.quantityMode==='percent'?p?.quantity:(p?.quantityPercent??0);$('url').value=p?.url||'';$('image').value=p?.image||'';$('notes').value=p?.notes||'';$('needed').value=String(p?.needed||false);$('editDialog').showModal();$('name').focus()}function settings(box){const root=e('div','settings');const first=e('section','setting');first.append(e('h3','','💾 Copia de seguridad'),e('p','','Tus productos se guardan localmente en este navegador y dispositivo. Si borras los datos del navegador o cambias de dispositivo, podrías perderlos. Exporta un archivo JSON para conservarlos.'));const actions=e('div','settings-buttons');actions.append(btn('↓ Exportar mis datos',()=>{const blob=new Blob([JSON.stringify({version:1,items},null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='mis-pontigues-backup.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);toast('Copia descargada ♡')},'primary'));const importLabel=e('label','light','↑ Importar copia');importLabel.style.cursor='pointer';const imp=e('input','hidden');imp.type='file';imp.accept='.json,application/json';imp.addEventListener('change',async()=>{try{if(!imp.files?.[0])return;const data=JSON.parse(await imp.files[0].text());if(!Array.isArray(data.items)||data.items.length>10000)throw Error();if(!confirm('Esto sustituirá tus productos actuales. ¿Continuar?'))return;items=data.items.map(clean).filter(p=>p.name);save();render();toast('Copia restaurada ♡')}catch{alert('Archivo de copia inválido.')}finally{imp.value=''}});importLabel.append(imp);actions.append(importLabel);first.append(actions);const second=e('section','setting');second.append(e('h3','','🔒 Privacidad'),e('p','','Esta versión no tiene cuentas ni servidor: los datos no se envían a GitHub. La web alojada en GitHub Pages sí es públicamente accesible, pero cada visitante verá su propio inventario vacío. Las imágenes y enlaces externos pueden cargar recursos de otras webs.'));const third=e('section','setting');third.append(e('h3','','🧹 Empezar de cero'),e('p','','Borra todos los productos guardados en este navegador. Haz primero una copia si los quieres conservar.'),btn('Borrar todos mis datos',()=>{if(confirm('¿Seguro? Se eliminarán todos los productos de este navegador.')){items=[];save();render();toast('Datos borrados')}},'mini danger'));root.append(first,second,third);box.append(root)}$('fetchLinkBtn').addEventListener('click',autofillLink);$('url').addEventListener('blur',()=>{if($('url').value.trim())autofillLink()});const EVENT_KEY='misPontigues.events.v1';let events=[];let editingEvent=null;const ROUTINE_KEY='misPontigues.routines.v1';function readRoutines(){try{const saved=JSON.parse(localStorage.getItem(ROUTINE_KEY)||'[]');routines=Array.isArray(saved)?saved.filter(x=>x&&x.title&&x.start):[]}catch{routines=[]}}function saveRoutines(){localStorage.setItem(ROUTINE_KEY,JSON.stringify(routines))}function routineOccurrences(fromKey,toKey){const from=new Date(fromKey+'T12:00:00'),to=new Date(toKey+'T12:00:00'),out=[];routines.forEach(r=>{const start=new Date(r.start+'T12:00:00'),end=r.end?new Date(r.end+'T12:00:00'):to;let cursor=new Date(start);const step=Math.max(1,Number(r.interval)||1);while(cursor<from){if(r.unit==='week')cursor.setDate(cursor.getDate()+step*7);else if(r.unit==='month')cursor.setMonth(cursor.getMonth()+step);else cursor.setDate(cursor.getDate()+step)}let guard=0;while(cursor<=to&&cursor<=end&&guard<500){const date=localDateKey(cursor);out.push({id:'routine-'+r.id+'-'+date,routineId:r.id,title:r.title,date,time:'',notes:r.notes||'',routine:true});if(r.unit==='week')cursor.setDate(cursor.getDate()+step*7);else if(r.unit==='month')cursor.setMonth(cursor.getMonth()+step);else cursor.setDate(cursor.getDate()+step);guard++}});return out}
-function readEvents(){try{const saved=JSON.parse(localStorage.getItem(EVENT_KEY)||'[]');events=Array.isArray(saved)?saved.filter(x=>x&&x.title&&x.date):[]}catch{events=[]}}
-function saveEvents(){localStorage.setItem(EVENT_KEY,JSON.stringify(events))}
-function localDateKey(d){const x=new Date(d);return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0')}
-function prettyDate(key){return new Intl.DateTimeFormat('es-ES',{weekday:'short',day:'numeric',month:'short'}).format(new Date(key+'T12:00:00'))}
-function renderWeekPreview(){const list=$('weekList');if(!list)return;const today=new Date();today.setHours(0,0,0,0);const end=new Date(today);end.setDate(end.getDate()+6);const fromKey=localDateKey(today),toKey=localDateKey(end);const shown=events.concat(routineOccurrences(fromKey,toKey)).filter(x=>{const d=new Date(x.date+'T12:00:00');return d>=today&&d<=end}).sort((x,y)=>(x.date+x.time).localeCompare(y.date+y.time));list.replaceChildren();if(!shown.length){list.append(e('div','week-empty','No tienes nada apuntado para los próximos días.'));return}shown.forEach(x=>{const row=e('div','week-event');const when=e('time','',prettyDate(x.date)+(x.time?' · '+x.time:''));const info=e('div');info.append(e('strong','',x.title));if(x.notes)info.append(e('small','',x.notes));row.append(when,info);list.append(row)})}function openEventForm(ev,date){editingEvent=ev?ev.id:null;$('eventForm').reset();$('eventModalTitle').textContent=ev?'Editar evento':'Añadir evento';$('eventTitle').value=ev?ev.title:'';$('eventDate').value=ev?ev.date:(date||localDateKey(new Date()));$('eventTime').value=ev?ev.time:'';$('eventNotes').value=ev?ev.notes:'';$('eventDialog').showModal();$('eventTitle').focus()}
-const MOOD_KEY='misPontigues.mood.v1';function saveMoodToCalendar(mood){const date=localDateKey(new Date());const id='mood-'+date;const now=new Date();const time=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');const item={id,title:'Mood: '+mood,date,time,notes:'Check-in de Mis Potingues'};const existing=events.find(x=>x.id===id);if(existing)Object.assign(existing,item);else events.push(item);saveEvents();renderWeekPreview()}function homeView(box){const wrap=e('div','home-summary');const head=e('div','home-summary-head');head.append(e('h2','', 'Tu resumen'),e('p','', 'Todo lo que tengo en marcha, en un vistazo.'));const grid=e('div','summary-grid');const cards=[['collection','En mi colección',items.filter(x=>x.status==='collection').length,'cosas guardadas'],['need','Por reponer',items.filter(x=>x.needed&&x.status==='collection').length,'pendientes'],['wishlist','Wishlist',items.filter(x=>x.status==='wishlist').length,'deseos guardados'],['calendar','Esta semana',events.filter(x=>{const n=new Date();n.setHours(0,0,0,0);const end=new Date(n);end.setDate(end.getDate()+6);const d=new Date(x.date+'T12:00:00');return d>=n&&d<=end}).length,'eventos próximos']];cards.forEach(x=>{const card=e('button','summary-card summary-card-link');card.type='button';card.dataset.go=x[0];card.append(e('span','summary-label',x[1]),e('strong','',String(x[2])),e('small','',x[3]));grid.append(card)});const mood=e('section','mood-card');mood.append(e('h3','','¿Cómo estoy hoy?'),e('p','','Un pequeño check-in solo para mí.'));const options=e('div','mood-options');const moods=[['🌸','En calma'],['✨','Con ganas'],['🫧','Necesito pausa'],['💗','De buen humor'],['🌙','Modo manta']];let saved='';try{saved=localStorage.getItem(MOOD_KEY)||''}catch{}moods.forEach(x=>{const b=e('button','mood-option'+(saved===x[1]?' selected':''),x[0]+'  '+x[1]);b.type='button';b.dataset.mood=x[1];options.append(b)});mood.append(options);wrap.append(head,grid,mood);box.append(wrap);box.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>setTab(b.dataset.go)));box.querySelectorAll('[data-mood]').forEach(b=>b.addEventListener('click',()=>{try{localStorage.setItem(MOOD_KEY,b.dataset.mood)}catch{}saveMoodToCalendar(b.dataset.mood);box.querySelectorAll('[data-mood]').forEach(x=>x.classList.toggle('selected',x===b));toast('Hoy estás: '+b.dataset.mood+' · guardado en calendario ♡')}))}function calendarView(box){const wrap=e('div','calendar-view');const now=new Date();const top=e('div','calendar-top');top.append(e('h3','',new Intl.DateTimeFormat('es-ES',{month:'long',year:'numeric'}).format(now)));const grid=e('div','calendar-grid');['lun','mar','mié','jue','vie','sáb','dom'].forEach(d=>grid.append(e('div','calendar-weekday',d)));const first=new Date(now.getFullYear(),now.getMonth(),1);const offset=(first.getDay()+6)%7;const days=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();const monthStart=localDateKey(new Date(now.getFullYear(),now.getMonth(),1));const monthEnd=localDateKey(new Date(now.getFullYear(),now.getMonth(),days));const calendarEvents=events.concat(routineOccurrences(monthStart,monthEnd));for(let i=0;i<offset+days;i++){const day=i-offset+1;const cell=e('button','calendar-day'+(day<1||day>days?' muted':''));cell.type='button';if(day<1||day>days){cell.disabled=true;grid.append(cell);continue}const key=localDateKey(new Date(now.getFullYear(),now.getMonth(),day));if(key===localDateKey(new Date()))cell.classList.add('today');cell.append(e('span','day-num',String(day)));calendarEvents.filter(x=>x.date===key).slice(0,3).forEach(x=>{const chip=e('span','day-event'+(x.routine?' routine-event':''),x.title);chip.draggable=!x.routine;chip.addEventListener('click',ev=>{ev.stopPropagation();if(x.routine){toast('Rutina: '+x.title+' · '+prettyDate(x.date));return}openEventForm(x)});if(!x.routine)chip.addEventListener('dragstart',ev=>{ev.dataTransfer.setData('text/plain',x.id);ev.stopPropagation()});cell.append(chip)});cell.addEventListener('click',()=>openEventForm(null,key));cell.addEventListener('dragover',ev=>{ev.preventDefault();cell.classList.add('drag-over')});cell.addEventListener('dragleave',()=>cell.classList.remove('drag-over'));cell.addEventListener('drop',ev=>{ev.preventDefault();cell.classList.remove('drag-over');const id=ev.dataTransfer.getData('text/plain');const moved=events.find(x=>x.id===id);if(!moved)return;moved.date=key;saveEvents();render();toast('Evento movido al '+prettyDate(key)+' ♡')});grid.append(cell)}wrap.append(top,grid);const list=e('div','event-list');events.filter(x=>x.date.startsWith(now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0'))).sort((x,y)=>(x.date+x.time).localeCompare(y.date+y.time)).forEach(x=>{const row=e('div','event-row');const info=e('div','event-row-info');info.append(e('strong','',x.title),e('small','',prettyDate(x.date)+(x.time?' · '+x.time:'')));const actions=e('div','event-row-actions');actions.append(btn('Editar',()=>openEventForm(x),'mini'),btn('Borrar',()=>{events=events.filter(y=>y.id!==x.id);saveEvents();render()},'mini danger'));row.append(info,actions);list.append(row)});routines.forEach(r=>{const row=e('div','event-row routine-row');const info=e('div','event-row-info');const repeat='Cada '+r.interval+' '+(r.unit==='day'?'día(s)':r.unit==='week'?'semana(s)':'mes(es)');info.append(e('strong','↻ '+r.title),e('small',repeat+' · desde '+prettyDate(r.start)+(r.end?' · hasta '+prettyDate(r.end):'')));row.append(info,btn('Borrar rutina',()=>{routines=routines.filter(x=>x.id!==r.id);saveRoutines();render();toast('Rutina borrada')},'mini danger'));list.append(row)});wrap.append(list);box.append(wrap)}$('routineForm').addEventListener('submit',ev=>{ev.preventDefault();const title=$('routineTitle').value.trim(),start=$('routineStart').value,end=$('routineEnd').value,interval=Math.max(1,Math.min(365,Number($('routineInterval').value)||1)),unit=$('routineUnit').value,notes=$('routineNotes').value.trim();if(!title||!start)return;if(end&&end<start){toast('La fecha final debe ser posterior al inicio');return}routines.push({id:crypto.randomUUID(),title,start,end,interval,unit,notes});saveRoutines();$('routineDialog').close();render();toast('Rutina guardada ♡')});$('routineCancel').addEventListener('click',()=>$('routineDialog').close());$('routineBtn').addEventListener('click',()=>{$('routineForm').reset();$('routineStart').value=localDateKey(new Date());$('routineInterval').value=1;$('routineUnit').value='day';$('routineDialog').showModal();$('routineTitle').focus()});$('eventForm').addEventListener('submit',ev=>{ev.preventDefault();const item={id:editingEvent||crypto.randomUUID(),title:$('eventTitle').value.trim(),date:$('eventDate').value,time:$('eventTime').value,notes:$('eventNotes').value.trim()};if(!item.title||!item.date)return;const i=events.findIndex(x=>x.id===editingEvent);if(i===-1)events.push(item);else events[i]=item;saveEvents();$('eventDialog').close();render();toast('Evento guardado ♡')});$('eventCancel').addEventListener('click',()=>$('eventDialog').close());$('weekCalendarBtn').addEventListener('click',()=>setTab('calendar'));$('productForm').addEventListener('submit',ev=>{ev.preventDefault();const p=clean({id:editing||crypto.randomUUID(),name:$('name').value.trim(),brand:$('brand').value.trim(),category:$('category').value.trim()||'Otros',price:$('price').value,quantity:$('quantity').value,quantityPercent:$('quantityPercent').value,url:$('url').value,image:$('image').value,notes:$('notes').value,status:$('status').value,needed:$('needed').value==='true'});if(!p.name)return;if(editing){const i=items.findIndex(x=>x.id===editing);if(i!==-1)items[i]=p}else items.unshift(p);save();$('editDialog').close();render();toast('Guardado con amor ♡')});$('cancel').addEventListener('click',()=>$('editDialog').close());$('addBtn').addEventListener('click',()=>tab==='calendar'?openEventForm():openForm());$('search').addEventListener('input',render);$('categoryFilter').addEventListener('change',render);document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>setTab(b.dataset.tab)));const CHECKLIST_KEY='misPontigues.checklist.v1';function wireChecklist(){const today=localDateKey(new Date());let saved={date:today,done:{}};try{const stored=JSON.parse(localStorage.getItem(CHECKLIST_KEY)||'null');if(stored&&stored.date===today)saved=stored}catch{}document.querySelectorAll('[data-check]').forEach(input=>{input.checked=Boolean(saved.done[input.dataset.check]);input.closest('.check-row')?.classList.toggle('done',input.checked);input.addEventListener('change',()=>{saved.done[input.dataset.check]=input.checked;localStorage.setItem(CHECKLIST_KEY,JSON.stringify(saved));input.closest('.check-row')?.classList.toggle('done',input.checked);toast(input.checked?'Pasito hecho ♡':'Lo dejamos para luego')})})}read();readStudies();readEvents();readRoutines();setTab('home');const RITUAL_KEY='misPontigues.ritual.v1';let ritualDone=(()=>{try{return JSON.parse(localStorage.getItem(RITUAL_KEY)||'{}')}catch{return {}}})();function renderRitual(){const buttons=document.querySelectorAll('[data-ritual]');let done=0;buttons.forEach(b=>{const yes=Boolean(ritualDone[b.dataset.ritual]);b.classList.toggle('done',yes);b.querySelector('.ritual-check').textContent=yes?'✓':'○';if(yes)done++});const p=document.getElementById('ritualProgress');if(p)p.textContent=done+' de 3 pasos completados'}function wireRitual(){document.querySelectorAll('[data-ritual]').forEach(b=>b.addEventListener('click',()=>{const k=b.dataset.ritual;ritualDone[k]=!ritualDone[k];localStorage.setItem(RITUAL_KEY,JSON.stringify(ritualDone));renderRitual();toast(ritualDone[k]?'Pasito hecho ♡':'Lo dejamos para luego')}));$('ritualScrollBtn')?.addEventListener('click',()=>document.getElementById('ritualCard')?.scrollIntoView({behavior:'smooth',block:'center'}));$('surpriseBtn')?.addEventListener('click',()=>{const pool=items.filter(x=>x.status==='collection');if(!pool.length){toast('Añade un producto y te sorprenderé ♡');return}const pick=pool[Math.floor(Math.random()*pool.length)];toast('Hoy toca: '+pick.name+' ✨');document.getElementById('search').value=pick.name;setTab('collection')});renderRitual()};wireRitual();wireChecklist();})();
+(() => {
+  "use strict";
+  const KEY = "pinkShelf.v1";
+  const defaultCategories = [
+    "Crema hidratante",
+    "Sérum",
+    "Mascarilla facial",
+    "Agua micelar",
+    "Agua micelar bifásica",
+    "Limpiador",
+    "Protector solar",
+    "Tónico",
+    "Exfoliante facial",
+    "Contorno de ojos",
+    "Bálsamo labial",
+    "Champú",
+    "Acondicionador",
+    "Mascarilla capilar",
+    "Aceite capilar",
+    "Tratamiento capilar",
+    "Gel de ducha",
+    "Jabón corporal",
+    "Exfoliante corporal",
+    "Crema corporal",
+    "Aceite corporal",
+    "Desodorante",
+    "Perfume",
+    "Colonia",
+    "Bruma corporal",
+    "Maquillaje",
+    "Base y corrector",
+    "Colorete",
+    "Iluminador",
+    "Sombras",
+    "Máscara de pestañas",
+    "Labios",
+    "Cuidado de uñas",
+    "Higiene bucal",
+    "Higiene íntima",
+    "Depilación",
+    "Accesorios",
+    "Otros",
+  ];
+  let items = [];
+  let tab = "home",
+    editing = null;
+  let routines = [];
+  const studySubjects = [
+    ["xarxes", "Xarxes de dades", "network"],
+    ["mates", "Mates discreta", "math"],
+    ["fisica", "Física", "atom"],
+    ["computadors", "Computadors", "computer"],
+    ["estadistica", "Estadística", "chart"],
+    ["programacion", "Programación", "code"],
+  ];
+  let studyTasks = {};
+  const $ = (id) => document.getElementById(id);
+  const money = (n) =>
+    new Intl.NumberFormat("es-ES", {
+      style: "currency",
+      currency: "EUR",
+    }).format(Number(n) || 0);
+  const safeUrl = (s) => {
+    try {
+      let u = new URL(s);
+      return ["https:", "http:"].includes(u.protocol) ? u.href : "";
+    } catch {
+      return "";
+    }
+  };
+  function read() {
+    try {
+      const x = JSON.parse(localStorage.getItem(KEY) || "[]");
+      items = Array.isArray(x)
+        ? x.filter((v) => v && typeof v === "object").map(clean)
+        : [];
+    } catch {
+      items = [];
+    }
+  }
+  function clean(v) {
+    const legacyPercent = v.quantityMode === "percent";
+    const fullUnits = legacyPercent
+      ? 0
+      : Math.max(0, Math.min(99999, Math.floor(Number(v.quantity) || 0)));
+    const partial = legacyPercent
+      ? Math.round(Number(v.quantity) || 0)
+      : Math.max(0, Math.min(100, Math.round(Number(v.quantityPercent) || 0)));
+    return {
+      id: String(v.id || crypto.randomUUID()),
+      name: String(v.name || "").slice(0, 110),
+      brand: String(v.brand || "").slice(0, 90),
+      category: String(v.category || "Otros").slice(0, 70),
+      price: Math.max(0, Math.min(999999, Number(v.price) || 0)),
+      quantityMode: "mixed",
+      quantity: fullUnits,
+      quantityPercent: Math.max(0, Math.min(100, partial)),
+      url: safeUrl(v.url || ""),
+      image: safeUrl(v.image || ""),
+      notes: String(v.notes || "").slice(0, 500),
+      status: v.status === "wishlist" ? "wishlist" : "collection",
+      needed: Boolean(v.needed) && v.status !== "wishlist",
+    };
+  }
+  function save() {
+    try {
+      localStorage.setItem(KEY, JSON.stringify(items));
+    } catch {
+      alert(
+        "No se han podido guardar los cambios. Exporta una copia de seguridad y revisa el espacio del navegador.",
+      );
+    }
+  }
+  function e(tag, cls, txt) {
+    let n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (txt !== undefined) n.textContent = txt;
+    return n;
+  }
+  function btn(txt, fn, cls = "mini") {
+    let n = e("button", cls, txt);
+    n.type = "button";
+    n.addEventListener("click", fn);
+    return n;
+  }
+  function toast(s) {
+    const old = document.querySelector(".toast");
+    old?.remove();
+    const n = e("div", "toast", s);
+    n.setAttribute("role", "status");
+    n.setAttribute("aria-live", "polite");
+    document.body.append(n);
+    setTimeout(() => n.remove(), 2500);
+  }
+  function setTab(t) {
+    tab = t;
+    document.querySelectorAll("[data-tab]").forEach((b) => {
+      b.classList.toggle("active", b.dataset.tab === t);
+      b.setAttribute("aria-pressed", String(b.dataset.tab === t));
+    });
+    $("sectionTitle").textContent = {
+      home: "Inicio",
+      collection: "Mi colección ♡",
+      need: "Lista de reposición 🛍️",
+      wishlist: "Mi wishlist 🎀",
+      studies: "Mis estudios 📚",
+      calendar: "Mi calendario",
+      settings: "Ajustes y copias ♡",
+    }[t];
+    $("addBtn").classList.toggle(
+      "hidden",
+      t === "home" || t === "settings" || t === "studies",
+    );
+    $("routineBtn").classList.toggle("hidden", t !== "calendar");
+    $("addBtn").textContent =
+      t === "wishlist"
+        ? "＋ Añadir deseo"
+        : t === "calendar"
+          ? "＋ Añadir evento"
+          : "＋ Añadir producto";
+    $("controls").classList.toggle(
+      "hidden",
+      t === "home" || t === "settings" || t === "calendar" || t === "studies",
+    );
+    $("mainBar").classList.toggle("hidden", t === "home");
+    document
+      .querySelectorAll(".home-only")
+      .forEach((n) => n.classList.toggle("hidden", t !== "home"));
+    $("search").value = "";
+    render();
+  }
+  const STUDY_KEY = "misPontigues.studies.v1";
+  function readStudies() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(STUDY_KEY) || "{}");
+      studyTasks = saved && typeof saved === "object" ? saved : {};
+    } catch {
+      studyTasks = {};
+    }
+    studySubjects.forEach(([id]) => {
+      if (!Array.isArray(studyTasks[id])) studyTasks[id] = [];
+    });
+  }
+  function saveStudies() {
+    localStorage.setItem(STUDY_KEY, JSON.stringify(studyTasks));
+  }
+  function studyIcon(kind) {
+    const shapes =
+      {
+        network: [
+          "M12 4v5m0 0-5 4m5-4 5 4M7 13l-2 4m2-4 5 4m5-4 2 4",
+          "M12 3a1 1 0 1 0 0 2 1 1 0 0 0 0-2ZM6 12a1 1 0 1 0 0 2 1 1 0 0 0 0-2Zm12 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2Zm-7 5a1 1 0 1 0 0 2 1 1 0 0 0 0-2Zm-7 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2Zm14 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2Z",
+        ],
+        math: ["M5 6h14M5 12h14M5 18h14", "M8 4 6 8m8 4-2 4m4 0 2 4"],
+        atom: [
+          "M12 12m-2 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0",
+          "M19.4 15c1.5-2.2 2.1-4.5 1.4-5.7-1.2-2-6.1-1.4-10.8 1.1S2.4 16.2 3.6 18.3c.7 1.2 3 1.4 5.6.7M4.6 9.2c-.9 2.5 2.2 6.5 6.8 9s8.9 2.9 9.9.6c.5-1.2-.3-3.3-2-5.3",
+        ],
+        computer: ["M4 5h16v11H4zM9 20h6m-3-4v4"],
+        chart: ["M4 19h16M6 16v-5h3v5m2 0V6h3v10m2 0V9h3v7"],
+        code: ["m8 7-5 5 5 5m8-10 5 5-5 5m-3-12-2 14"],
+      }[kind] || [];
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("viewBox", "0 0 24 24");
+    svg.setAttribute("aria-hidden", "true");
+    svg.setAttribute("fill", "none");
+    svg.setAttribute("stroke", "currentColor");
+    svg.setAttribute("stroke-width", "1.7");
+    svg.setAttribute("stroke-linecap", "round");
+    svg.setAttribute("stroke-linejoin", "round");
+    shapes.forEach((d) => {
+      const path = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "path",
+      );
+      path.setAttribute("d", d);
+      svg.append(path);
+    });
+    return svg;
+  }
+  function studyView(box) {
+    const wrap = e("div", "studies-view");
+    const intro = e("div", "studies-intro");
+    intro.append(
+      e("h2", "", "Mis estudios"),
+      e("p", "", "Tus asignaturas y tus tareas, todo en un mismo sitio."),
+    );
+    const grid = e("div", "studies-grid");
+    studySubjects.forEach(([id, name, icon]) => {
+      const tasks = studyTasks[id] || [];
+      const card = e("section", "study-card");
+      const head = e("div", "study-card-head");
+      const title = e("div", "study-title");
+      const iconWrap = e("span", "study-icon");
+      iconWrap.append(studyIcon(icon));
+      title.append(iconWrap, e("h3", "", name));
+      const done = tasks.filter((x) => x.done).length;
+      head.append(
+        title,
+        e("span", "study-progress", done + " / " + tasks.length),
+      );
+      card.append(head);
+      const list = e("div", "study-list");
+      if (!tasks.length)
+        list.append(e("p", "study-empty", "Añade tu primera tarea abajo ♡"));
+      tasks.forEach((task) => {
+        const row = e("label", "study-task" + (task.done ? " done" : ""));
+        const check = e("input");
+        check.type = "checkbox";
+        check.checked = Boolean(task.done);
+        check.addEventListener("change", () => {
+          task.done = check.checked;
+          saveStudies();
+          row.classList.toggle("done", task.done);
+          head.querySelector(".study-progress").textContent =
+            (studyTasks[id] || []).filter((x) => x.done).length +
+            " / " +
+            (studyTasks[id] || []).length;
+          toast(task.done ? "Tarea hecha ♡" : "Tarea pendiente");
+        });
+        const taskInfo = e("span", "study-task-info");
+        taskInfo.append(e("span", "study-task-text", task.text));
+        if (task.date) {
+          const dueDate = e("time", "study-task-date", prettyDate(task.date));
+          dueDate.dateTime = task.date;
+          taskInfo.append(dueDate);
+        }
+        row.append(
+          check,
+          taskInfo,
+          btn(
+            "×",
+            () => {
+              studyTasks[id] = studyTasks[id].filter((x) => x.id !== task.id);
+              saveStudies();
+              render();
+            },
+            "study-delete",
+          ),
+        );
+        list.append(row);
+      });
+      card.append(list);
+      const form = e("form", "study-add");
+      const input = e("input");
+      input.type = "text";
+      input.placeholder = "Añadir tarea...";
+      input.maxLength = 120;
+      input.setAttribute("aria-label", "Nueva tarea para " + name);
+      const dateInput = e("input");
+      dateInput.type = "date";
+      dateInput.setAttribute(
+        "aria-label",
+        "Fecha del examen o tarea de " + name,
+      );
+      const add = e("button", "mini primary", "Añadir");
+      add.type = "submit";
+      form.append(input, dateInput, add);
+      form.addEventListener("submit", (ev) => {
+        ev.preventDefault();
+        const text = input.value.trim();
+        if (!text) return;
+        studyTasks[id].push({
+          id: crypto.randomUUID(),
+          text,
+          date: dateInput.value,
+          done: false,
+        });
+        saveStudies();
+        render();
+        toast("Tarea añadida a " + name + " ♡");
+      });
+      card.append(form);
+      grid.append(card);
+    });
+    wrap.append(intro, grid);
+    box.append(wrap);
+  }
+  function categories() {
+    const chosen = $("categoryFilter").value;
+    const all = [
+      ...new Set([
+        ...defaultCategories,
+        ...items.map((p) => p.category).filter(Boolean),
+      ]),
+    ].sort((a, b) => a.localeCompare(b, "es"));
+    $("categoryFilter").replaceChildren(
+      new Option("Todas las categorías", ""),
+      ...all.map((x) => new Option(x, x)),
+    );
+    if (all.includes(chosen)) $("categoryFilter").value = chosen;
+    $("categories").replaceChildren(
+      ...all.map((x) => {
+        const n = e("option");
+        n.value = x;
+        return n;
+      }),
+    );
+  }
+  function quantityBows(n, percent = 0) {
+    const wrap = e("div", "quantity-display");
+    const full = Math.max(0, Math.min(20, Math.floor(Number(n) || 0)));
+    const partial = Math.max(
+      0,
+      Math.min(100, Math.round(Number(percent) || 0)),
+    );
+    wrap.setAttribute(
+      "aria-label",
+      "Cantidad: " +
+        full +
+        " bote(s)" +
+        (partial ? " y " + partial + "% de otro bote" : ""),
+    );
+    const label = e("span", "quantity-label", "Cantidad");
+    const bows = e("span", "quantity-bows");
+    for (let i = 0; i < full; i++) bows.append(e("span", "quantity-bow", "୨୧"));
+    if (!full && !partial) bows.append(e("span", "quantity-zero", "0"));
+    wrap.append(label, bows);
+    if (partial)
+      wrap.append(e("span", "quantity-percent", "+ " + partial + "%"));
+    return wrap;
+  }
+  function render() {
+    categories();
+    $("countProducts").textContent = items.filter(
+      (x) => x.status === "collection",
+    ).length;
+    $("countNeed").textContent = items.filter(
+      (x) => x.needed && x.status === "collection",
+    ).length;
+    $("countWishlist").textContent = money(
+      items
+        .filter((x) => x.status === "wishlist")
+        .reduce((a, b) => a + b.price, 0),
+    );
+    const box = $("content");
+    box.replaceChildren();
+    renderWeekPreview();
+    if (tab === "home") {
+      homeView(box);
+      return;
+    }
+    if (tab === "settings") {
+      settings(box);
+      return;
+    }
+    if (tab === "studies") {
+      studyView(box);
+      return;
+    }
+    if (tab === "calendar") {
+      calendarView(box);
+      return;
+    }
+    const term = $("search").value.trim().toLocaleLowerCase("es");
+    const cat = $("categoryFilter").value;
+    let shown = items.filter(
+      (p) =>
+        (tab === "wishlist"
+          ? p.status === "wishlist"
+          : tab === "need"
+            ? p.status === "collection" && p.needed
+            : p.status === "collection") &&
+        (!cat || p.category === cat) &&
+        (!term ||
+          [p.name, p.brand, p.category, p.notes]
+            .join(" ")
+            .toLocaleLowerCase("es")
+            .includes(term)),
+    );
+    if (!shown.length) {
+      const x = e("div", "empty");
+      x.append(
+        e("div", "flower", "🌸"),
+        e(
+          "h3",
+          "",
+          tab === "need"
+            ? "¡Nada pendiente de reponer!"
+            : tab === "wishlist"
+              ? "Tu wishlist te está esperando ♡"
+              : "Tu estantería está esperando ♡",
+        ),
+        e(
+          "p",
+          "",
+          tab === "need"
+            ? "Marca «Reponer» en alguno de tus productos."
+            : "Añade algo que te guste con el botón de arriba.",
+        ),
+      );
+      box.append(x);
+      return;
+    }
+    if (tab === "need") {
+      const list = e("div", "list");
+      shown.forEach((p) => {
+        const line = e("div", "listitem");
+        const info = e("div", "info");
+        info.append(
+          e("h3", "", p.name),
+          e("div", "muted", [p.brand, p.category].filter(Boolean).join(" · ")),
+        );
+        line.append(
+          e("span", "pill", "🛍️"),
+          info,
+          e("span", "price", money(p.price)),
+        );
+        if (p.url) {
+          const a = e("a", "mini", "Ver tienda ↗");
+          a.href = p.url;
+          a.target = "_blank";
+          a.rel = "noopener noreferrer";
+          line.append(a);
+        }
+        line.append(
+          btn("✓ Ya lo compré", () => {
+            p.needed = false;
+            p.quantity += 1;
+            save();
+            render();
+            toast("¡Reposición completada! ♡");
+          }),
+          btn("Editar", () => openForm(p)),
+        );
+        list.append(line);
+      });
+      box.append(list);
+      return;
+    }
+    const grid = e("div", "grid");
+    shown.forEach((p) => {
+      const card = e("article", "product");
+      const pic = e("div", "pic");
+      if (p.image) {
+        const img = e("img");
+        img.src = p.image;
+        img.alt = "Foto de " + p.name;
+        img.loading = "lazy";
+        img.referrerPolicy = "no-referrer";
+        img.onerror = () => pic.replaceChildren(e("span", "", "🧴"));
+        pic.append(img);
+      } else pic.append(e("span", "", p.status === "wishlist" ? "🎁" : "🧴"));
+      card.append(pic);
+      const top = e("div", "row");
+      top.append(e("span", "pill", p.category || "Otros"));
+      if (p.status === "collection" && p.needed)
+        top.append(e("span", "pill", "🛍️ Reponer"));
+      card.append(
+        top,
+        e("div", "brand", p.brand || "Sin marca"),
+        e("h3", "", p.name),
+      );
+      if (p.notes) card.append(e("div", "muted", p.notes));
+      if (p.status === "collection")
+        card.append(quantityBows(p.quantity, p.quantityPercent));
+      else card.append(e("div", "muted", "En tu lista de deseos"));
+      card.append(e("div", "price", money(p.price)));
+      const actions = e("div", "card-actions");
+      if (p.status === "collection") {
+        actions.append(
+          btn(p.needed ? "✓ En lista" : "＋ Reponer", () => {
+            p.needed = !p.needed;
+            save();
+            render();
+          }),
+        );
+      } else {
+        actions.append(
+          btn("✓ Comprado", () => {
+            p.status = "collection";
+            p.quantity = Math.max(1, p.quantity);
+            p.quantityPercent = 0;
+            p.quantityMode = "mixed";
+            p.needed = false;
+            save();
+            render();
+            toast("¡Añadido a tu colección! ♡");
+          }),
+        );
+      }
+      if (p.url) {
+        const a = e("a", "mini", "Comprar ↗");
+        a.href = p.url;
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+        actions.append(a);
+      }
+      actions.append(
+        btn("Editar", () => openForm(p)),
+        btn(
+          "Eliminar",
+          () => {
+            if (confirm("¿Eliminar «" + p.name + "»?")) {
+              items = items.filter((x) => x.id !== p.id);
+              save();
+              render();
+            }
+          },
+          "mini danger",
+        ),
+      );
+      card.append(actions);
+      grid.append(card);
+    });
+    box.append(grid);
+  }
+  function parsePrice(raw) {
+    if (raw === undefined || raw === null) return "";
+    if (typeof raw === "object")
+      raw =
+        raw.value ?? raw.content ?? raw.text ?? raw.amount ?? raw.price ?? "";
+    let s = String(raw)
+      .replace(/[^0-9,.]/g, "")
+      .trim();
+    if (!s) return "";
+    if (s.includes(",") && s.includes(".")) {
+      s =
+        s.lastIndexOf(",") > s.lastIndexOf(".")
+          ? s.replace(/\./g, "").replace(",", ".")
+          : s.replace(/,/g, "");
+    } else if (s.includes(",")) {
+      s = s.replace(",", ".");
+    }
+    const n = Number(s);
+    return Number.isFinite(n) ? n.toFixed(2) : "";
+  }
+  function findLinkPrice(data) {
+    const candidates = [
+      data.price,
+      data["product:price:amount"],
+      data["og:price:amount"],
+      data["product:price"],
+      data["og:price"],
+      data["price:amount"],
+      data["price:currency"] && data.price,
+    ];
+    for (const candidate of candidates) {
+      const value = parsePrice(candidate);
+      if (value) return value;
+    }
+    return "";
+  }
+  async function autofillLink() {
+    const link = safeUrl($("url").value.trim());
+    const status = $("linkStatus");
+    if (!link) {
+      status.textContent = "Pega un enlace válido para buscar sus datos.";
+      status.className = "link-status error";
+      return;
+    }
+    status.textContent = "Buscando los datos del artículo…";
+    status.className = "link-status loading";
+    $("fetchLinkBtn").disabled = true;
+    try {
+      const response = await fetch(
+        "https://api.microlink.io?url=" +
+          encodeURIComponent(link) +
+          "&meta=true",
+      );
+      const result = await response.json();
+      const data = result.data || {};
+      const title = String(data.title || "").trim();
+      const price = findLinkPrice(data);
+      const image =
+        typeof data.image === "string" ? data.image : data.image?.url || "";
+      if (title && !$("name").value.trim())
+        $("name").value = title.slice(0, 110);
+      if (price && !$("price").value) $("price").value = price;
+      if (image && !$("image").value) $("image").value = image;
+      if (title || price || image) {
+        const found = [
+          title ? "nombre" : "",
+          price ? "precio" : "",
+          image ? "imagen" : "",
+        ]
+          .filter(Boolean)
+          .join(", ");
+        status.textContent =
+          "Listo: he encontrado " +
+          found +
+          ". Puedes editarlo antes de guardar.";
+        status.className = "link-status ok";
+      } else {
+        status.textContent =
+          "No he encontrado datos automáticos; puedes rellenarlos a mano.";
+        status.className = "link-status error";
+      }
+    } catch {
+      status.textContent =
+        "No se pudo consultar este enlace; rellénalo a mano si hace falta.";
+      status.className = "link-status error";
+    } finally {
+      $("fetchLinkBtn").disabled = false;
+    }
+  }
+  function openForm(p) {
+    editing = p?.id || null;
+    $("productForm").reset();
+    $("modalTitle").textContent = p
+      ? "Editar artículo ♡"
+      : tab === "wishlist"
+        ? "Nuevo deseo ♡"
+        : "Nuevo artículo ♡";
+    $("status").value =
+      p?.status || (tab === "wishlist" ? "wishlist" : "collection");
+    $("name").value = p?.name || "";
+    $("brand").value = p?.brand || "";
+    $("category").value = p?.category || "";
+    $("price").value = p?.price ?? "";
+    $("quantity").value =
+      p?.quantityMode === "percent" ? 0 : (p?.quantity ?? 1);
+    $("quantityPercent").value =
+      p?.quantityMode === "percent" ? p?.quantity : (p?.quantityPercent ?? 0);
+    $("url").value = p?.url || "";
+    $("image").value = p?.image || "";
+    $("notes").value = p?.notes || "";
+    $("needed").value = String(p?.needed || false);
+    $("editDialog").showModal();
+    $("name").focus();
+  }
+  function settings(box) {
+    const root = e("div", "settings");
+    const first = e("section", "setting");
+    first.append(
+      e("h3", "", "💾 Copia de seguridad"),
+      e(
+        "p",
+        "",
+        "Tus productos se guardan localmente en este navegador y dispositivo. Si borras los datos del navegador o cambias de dispositivo, podrías perderlos. Exporta un archivo JSON para conservarlos.",
+      ),
+    );
+    const actions = e("div", "settings-buttons");
+    actions.append(
+      btn(
+        "↓ Exportar mis datos",
+        () => {
+          const blob = new Blob(
+            [JSON.stringify({ version: 1, items }, null, 2)],
+            { type: "application/json" },
+          );
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "mis-pontigues-backup.json";
+          a.click();
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+          toast("Copia descargada ♡");
+        },
+        "primary",
+      ),
+    );
+    const importLabel = e("label", "light", "↑ Importar copia");
+    importLabel.style.cursor = "pointer";
+    const imp = e("input", "hidden");
+    imp.type = "file";
+    imp.accept = ".json,application/json";
+    imp.addEventListener("change", async () => {
+      try {
+        if (!imp.files?.[0]) return;
+        const data = JSON.parse(await imp.files[0].text());
+        if (!Array.isArray(data.items) || data.items.length > 10000)
+          throw Error();
+        if (!confirm("Esto sustituirá tus productos actuales. ¿Continuar?"))
+          return;
+        items = data.items.map(clean).filter((p) => p.name);
+        save();
+        render();
+        toast("Copia restaurada ♡");
+      } catch {
+        alert("Archivo de copia inválido.");
+      } finally {
+        imp.value = "";
+      }
+    });
+    importLabel.append(imp);
+    actions.append(importLabel);
+    first.append(actions);
+    const second = e("section", "setting");
+    second.append(
+      e("h3", "", "🔒 Privacidad"),
+      e(
+        "p",
+        "",
+        "Esta versión no tiene cuentas ni servidor: los datos no se envían a GitHub. La web alojada en GitHub Pages sí es públicamente accesible, pero cada visitante verá su propio inventario vacío. Las imágenes y enlaces externos pueden cargar recursos de otras webs.",
+      ),
+    );
+    const third = e("section", "setting");
+    third.append(
+      e("h3", "", "🧹 Empezar de cero"),
+      e(
+        "p",
+        "",
+        "Borra todos los productos guardados en este navegador. Haz primero una copia si los quieres conservar.",
+      ),
+      btn(
+        "Borrar todos mis datos",
+        () => {
+          if (
+            confirm(
+              "¿Seguro? Se eliminarán todos los productos de este navegador.",
+            )
+          ) {
+            items = [];
+            save();
+            render();
+            toast("Datos borrados");
+          }
+        },
+        "mini danger",
+      ),
+    );
+    root.append(first, second, third);
+    box.append(root);
+  }
+  $("fetchLinkBtn").addEventListener("click", autofillLink);
+  $("url").addEventListener("blur", () => {
+    if ($("url").value.trim()) autofillLink();
+  });
+  const EVENT_KEY = "misPontigues.events.v1";
+  let events = [];
+  let editingEvent = null;
+  const ROUTINE_KEY = "misPontigues.routines.v1";
+  function readRoutines() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(ROUTINE_KEY) || "[]");
+      routines = Array.isArray(saved)
+        ? saved.filter((x) => x && x.title && x.start)
+        : [];
+    } catch {
+      routines = [];
+    }
+  }
+  function saveRoutines() {
+    localStorage.setItem(ROUTINE_KEY, JSON.stringify(routines));
+  }
+  function routineOccurrences(fromKey, toKey) {
+    const from = new Date(fromKey + "T12:00:00"),
+      to = new Date(toKey + "T12:00:00"),
+      out = [];
+    routines.forEach((r) => {
+      const start = new Date(r.start + "T12:00:00"),
+        end = r.end ? new Date(r.end + "T12:00:00") : to;
+      let cursor = new Date(start);
+      const step = Math.max(1, Number(r.interval) || 1);
+      while (cursor < from) {
+        if (r.unit === "week") cursor.setDate(cursor.getDate() + step * 7);
+        else if (r.unit === "month") cursor.setMonth(cursor.getMonth() + step);
+        else cursor.setDate(cursor.getDate() + step);
+      }
+      let guard = 0;
+      while (cursor <= to && cursor <= end && guard < 500) {
+        const date = localDateKey(cursor);
+        out.push({
+          id: "routine-" + r.id + "-" + date,
+          routineId: r.id,
+          title: r.title,
+          date,
+          time: "",
+          notes: r.notes || "",
+          routine: true,
+        });
+        if (r.unit === "week") cursor.setDate(cursor.getDate() + step * 7);
+        else if (r.unit === "month") cursor.setMonth(cursor.getMonth() + step);
+        else cursor.setDate(cursor.getDate() + step);
+        guard++;
+      }
+    });
+    return out;
+  }
+  function readEvents() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(EVENT_KEY) || "[]");
+      events = Array.isArray(saved)
+        ? saved.filter((x) => x && x.title && x.date)
+        : [];
+    } catch {
+      events = [];
+    }
+  }
+  function saveEvents() {
+    localStorage.setItem(EVENT_KEY, JSON.stringify(events));
+  }
+  function localDateKey(d) {
+    const x = new Date(d);
+    return (
+      x.getFullYear() +
+      "-" +
+      String(x.getMonth() + 1).padStart(2, "0") +
+      "-" +
+      String(x.getDate()).padStart(2, "0")
+    );
+  }
+  function prettyDate(key) {
+    return new Intl.DateTimeFormat("es-ES", {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+    }).format(new Date(key + "T12:00:00"));
+  }
+  function renderWeekPreview() {
+    const list = $("weekList");
+    if (!list) return;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const end = new Date(today);
+    end.setDate(end.getDate() + 6);
+    const fromKey = localDateKey(today),
+      toKey = localDateKey(end);
+    const shown = events
+      .concat(routineOccurrences(fromKey, toKey))
+      .filter((x) => {
+        const d = new Date(x.date + "T12:00:00");
+        return d >= today && d <= end;
+      })
+      .sort((x, y) => (x.date + x.time).localeCompare(y.date + y.time));
+    list.replaceChildren();
+    if (!shown.length) {
+      list.append(
+        e(
+          "div",
+          "week-empty",
+          "No tienes nada apuntado para los próximos días.",
+        ),
+      );
+      return;
+    }
+    shown.forEach((x) => {
+      const row = e("div", "week-event");
+      const when = e(
+        "time",
+        "",
+        prettyDate(x.date) + (x.time ? " · " + x.time : ""),
+      );
+      const info = e("div");
+      info.append(e("strong", "", x.title));
+      if (x.notes) info.append(e("small", "", x.notes));
+      row.append(when, info);
+      list.append(row);
+    });
+  }
+  function openEventForm(ev, date) {
+    editingEvent = ev ? ev.id : null;
+    $("eventForm").reset();
+    $("eventModalTitle").textContent = ev ? "Editar evento" : "Añadir evento";
+    $("eventTitle").value = ev ? ev.title : "";
+    $("eventDate").value = ev ? ev.date : date || localDateKey(new Date());
+    $("eventTime").value = ev ? ev.time : "";
+    $("eventNotes").value = ev ? ev.notes : "";
+    $("eventDialog").showModal();
+    $("eventTitle").focus();
+  }
+  const MOOD_KEY = "misPontigues.mood.v1";
+  function saveMoodToCalendar(mood) {
+    const date = localDateKey(new Date());
+    const id = "mood-" + date;
+    const now = new Date();
+    const time =
+      String(now.getHours()).padStart(2, "0") +
+      ":" +
+      String(now.getMinutes()).padStart(2, "0");
+    const item = {
+      id,
+      title: "Mood: " + mood,
+      date,
+      time,
+      notes: "Check-in de Mis Potingues",
+    };
+    const existing = events.find((x) => x.id === id);
+    if (existing) Object.assign(existing, item);
+    else events.push(item);
+    saveEvents();
+    renderWeekPreview();
+  }
+  function homeView(box) {
+    const wrap = e("div", "home-summary");
+    const head = e("div", "home-summary-head");
+    head.append(
+      e("h2", "", "Tu resumen"),
+      e("p", "", "Todo lo que tengo en marcha, en un vistazo."),
+    );
+    const grid = e("div", "summary-grid");
+    const cards = [
+      [
+        "collection",
+        "En mi colección",
+        items.filter((x) => x.status === "collection").length,
+        "cosas guardadas",
+      ],
+      [
+        "need",
+        "Por reponer",
+        items.filter((x) => x.needed && x.status === "collection").length,
+        "pendientes",
+      ],
+      [
+        "wishlist",
+        "Wishlist",
+        items.filter((x) => x.status === "wishlist").length,
+        "deseos guardados",
+      ],
+      [
+        "calendar",
+        "Esta semana",
+        events.filter((x) => {
+          const n = new Date();
+          n.setHours(0, 0, 0, 0);
+          const end = new Date(n);
+          end.setDate(end.getDate() + 6);
+          const d = new Date(x.date + "T12:00:00");
+          return d >= n && d <= end;
+        }).length,
+        "eventos próximos",
+      ],
+    ];
+    cards.forEach((x) => {
+      const card = e("button", "summary-card summary-card-link");
+      card.type = "button";
+      card.dataset.go = x[0];
+      card.append(
+        e("span", "summary-label", x[1]),
+        e("strong", "", String(x[2])),
+        e("small", "", x[3]),
+      );
+      grid.append(card);
+    });
+    const mood = e("section", "mood-card");
+    mood.append(
+      e("h3", "", "¿Cómo estoy hoy?"),
+      e("p", "", "Un pequeño check-in solo para mí."),
+    );
+    const options = e("div", "mood-options");
+    const moods = [
+      ["🌸", "En calma"],
+      ["✨", "Con ganas"],
+      ["🫧", "Necesito pausa"],
+      ["💗", "De buen humor"],
+      ["🌙", "Modo manta"],
+    ];
+    let saved = "";
+    try {
+      saved = localStorage.getItem(MOOD_KEY) || "";
+    } catch {}
+    moods.forEach((x) => {
+      const b = e(
+        "button",
+        "mood-option" + (saved === x[1] ? " selected" : ""),
+        x[0] + "  " + x[1],
+      );
+      b.type = "button";
+      b.dataset.mood = x[1];
+      options.append(b);
+    });
+    mood.append(options);
+    wrap.append(head, grid, mood);
+    box.append(wrap);
+    box
+      .querySelectorAll("[data-go]")
+      .forEach((b) => b.addEventListener("click", () => setTab(b.dataset.go)));
+    box.querySelectorAll("[data-mood]").forEach((b) =>
+      b.addEventListener("click", () => {
+        try {
+          localStorage.setItem(MOOD_KEY, b.dataset.mood);
+        } catch {}
+        saveMoodToCalendar(b.dataset.mood);
+        box
+          .querySelectorAll("[data-mood]")
+          .forEach((x) => x.classList.toggle("selected", x === b));
+        toast("Hoy estás: " + b.dataset.mood + " · guardado en calendario ♡");
+      }),
+    );
+  }
+  function calendarView(box) {
+    const wrap = e("div", "calendar-view");
+    const now = new Date();
+    const top = e("div", "calendar-top");
+    top.append(
+      e(
+        "h3",
+        "",
+        new Intl.DateTimeFormat("es-ES", {
+          month: "long",
+          year: "numeric",
+        }).format(now),
+      ),
+    );
+    const grid = e("div", "calendar-grid");
+    ["lun", "mar", "mié", "jue", "vie", "sáb", "dom"].forEach((d) =>
+      grid.append(e("div", "calendar-weekday", d)),
+    );
+    const first = new Date(now.getFullYear(), now.getMonth(), 1);
+    const offset = (first.getDay() + 6) % 7;
+    const days = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const monthStart = localDateKey(
+      new Date(now.getFullYear(), now.getMonth(), 1),
+    );
+    const monthEnd = localDateKey(
+      new Date(now.getFullYear(), now.getMonth(), days),
+    );
+    const calendarEvents = events.concat(
+      routineOccurrences(monthStart, monthEnd),
+    );
+    for (let i = 0; i < offset + days; i++) {
+      const day = i - offset + 1;
+      const cell = e(
+        "button",
+        "calendar-day" + (day < 1 || day > days ? " muted" : ""),
+      );
+      cell.type = "button";
+      if (day < 1 || day > days) {
+        cell.disabled = true;
+        grid.append(cell);
+        continue;
+      }
+      const key = localDateKey(
+        new Date(now.getFullYear(), now.getMonth(), day),
+      );
+      if (key === localDateKey(new Date())) cell.classList.add("today");
+      cell.append(e("span", "day-num", String(day)));
+      calendarEvents
+        .filter((x) => x.date === key)
+        .slice(0, 3)
+        .forEach((x) => {
+          const chip = e(
+            "span",
+            "day-event" + (x.routine ? " routine-event" : ""),
+            x.title,
+          );
+          chip.draggable = !x.routine;
+          chip.addEventListener("click", (ev) => {
+            ev.stopPropagation();
+            if (x.routine) {
+              toast("Rutina: " + x.title + " · " + prettyDate(x.date));
+              return;
+            }
+            openEventForm(x);
+          });
+          if (!x.routine)
+            chip.addEventListener("dragstart", (ev) => {
+              ev.dataTransfer.setData("text/plain", x.id);
+              ev.stopPropagation();
+            });
+          cell.append(chip);
+        });
+      cell.addEventListener("click", () => openEventForm(null, key));
+      cell.addEventListener("dragover", (ev) => {
+        ev.preventDefault();
+        cell.classList.add("drag-over");
+      });
+      cell.addEventListener("dragleave", () =>
+        cell.classList.remove("drag-over"),
+      );
+      cell.addEventListener("drop", (ev) => {
+        ev.preventDefault();
+        cell.classList.remove("drag-over");
+        const id = ev.dataTransfer.getData("text/plain");
+        const moved = events.find((x) => x.id === id);
+        if (!moved) return;
+        moved.date = key;
+        saveEvents();
+        render();
+        toast("Evento movido al " + prettyDate(key) + " ♡");
+      });
+      grid.append(cell);
+    }
+    wrap.append(top, grid);
+    const list = e("div", "event-list");
+    events
+      .filter((x) =>
+        x.date.startsWith(
+          now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0"),
+        ),
+      )
+      .sort((x, y) => (x.date + x.time).localeCompare(y.date + y.time))
+      .forEach((x) => {
+        const row = e("div", "event-row");
+        const info = e("div", "event-row-info");
+        info.append(
+          e("strong", "", x.title),
+          e("small", "", prettyDate(x.date) + (x.time ? " · " + x.time : "")),
+        );
+        const actions = e("div", "event-row-actions");
+        actions.append(
+          btn("Editar", () => openEventForm(x), "mini"),
+          btn(
+            "Borrar",
+            () => {
+              events = events.filter((y) => y.id !== x.id);
+              saveEvents();
+              render();
+            },
+            "mini danger",
+          ),
+        );
+        row.append(info, actions);
+        list.append(row);
+      });
+    routines.forEach((r) => {
+      const row = e("div", "event-row routine-row");
+      const info = e("div", "event-row-info");
+      const repeat =
+        "Cada " +
+        r.interval +
+        " " +
+        (r.unit === "day"
+          ? "día(s)"
+          : r.unit === "week"
+            ? "semana(s)"
+            : "mes(es)");
+      info.append(
+        e("strong", "↻ " + r.title),
+        e(
+          "small",
+          repeat +
+            " · desde " +
+            prettyDate(r.start) +
+            (r.end ? " · hasta " + prettyDate(r.end) : ""),
+        ),
+      );
+      row.append(
+        info,
+        btn(
+          "Borrar rutina",
+          () => {
+            routines = routines.filter((x) => x.id !== r.id);
+            saveRoutines();
+            render();
+            toast("Rutina borrada");
+          },
+          "mini danger",
+        ),
+      );
+      list.append(row);
+    });
+    wrap.append(list);
+    box.append(wrap);
+  }
+  $("routineForm").addEventListener("submit", (ev) => {
+    ev.preventDefault();
+    const title = $("routineTitle").value.trim(),
+      start = $("routineStart").value,
+      end = $("routineEnd").value,
+      interval = Math.max(
+        1,
+        Math.min(365, Number($("routineInterval").value) || 1),
+      ),
+      unit = $("routineUnit").value,
+      notes = $("routineNotes").value.trim();
+    if (!title || !start) return;
+    if (end && end < start) {
+      toast("La fecha final debe ser posterior al inicio");
+      return;
+    }
+    routines.push({
+      id: crypto.randomUUID(),
+      title,
+      start,
+      end,
+      interval,
+      unit,
+      notes,
+    });
+    saveRoutines();
+    $("routineDialog").close();
+    render();
+    toast("Rutina guardada ♡");
+  });
+  $("routineCancel").addEventListener("click", () =>
+    $("routineDialog").close(),
+  );
+  $("routineBtn").addEventListener("click", () => {
+    $("routineForm").reset();
+    $("routineStart").value = localDateKey(new Date());
+    $("routineInterval").value = 1;
+    $("routineUnit").value = "day";
+    $("routineDialog").showModal();
+    $("routineTitle").focus();
+  });
+  $("eventForm").addEventListener("submit", (ev) => {
+    ev.preventDefault();
+    const item = {
+      id: editingEvent || crypto.randomUUID(),
+      title: $("eventTitle").value.trim(),
+      date: $("eventDate").value,
+      time: $("eventTime").value,
+      notes: $("eventNotes").value.trim(),
+    };
+    if (!item.title || !item.date) return;
+    const i = events.findIndex((x) => x.id === editingEvent);
+    if (i === -1) events.push(item);
+    else events[i] = item;
+    saveEvents();
+    $("eventDialog").close();
+    render();
+    toast("Evento guardado ♡");
+  });
+  $("eventCancel").addEventListener("click", () => $("eventDialog").close());
+  $("weekCalendarBtn").addEventListener("click", () => setTab("calendar"));
+  $("productForm").addEventListener("submit", (ev) => {
+    ev.preventDefault();
+    const p = clean({
+      id: editing || crypto.randomUUID(),
+      name: $("name").value.trim(),
+      brand: $("brand").value.trim(),
+      category: $("category").value.trim() || "Otros",
+      price: $("price").value,
+      quantity: $("quantity").value,
+      quantityPercent: $("quantityPercent").value,
+      url: $("url").value,
+      image: $("image").value,
+      notes: $("notes").value,
+      status: $("status").value,
+      needed: $("needed").value === "true",
+    });
+    if (!p.name) return;
+    if (editing) {
+      const i = items.findIndex((x) => x.id === editing);
+      if (i !== -1) items[i] = p;
+    } else items.unshift(p);
+    save();
+    $("editDialog").close();
+    render();
+    toast("Guardado con amor ♡");
+  });
+  $("cancel").addEventListener("click", () => $("editDialog").close());
+  $("addBtn").addEventListener("click", () =>
+    tab === "calendar" ? openEventForm() : openForm(),
+  );
+  $("search").addEventListener("input", render);
+  $("categoryFilter").addEventListener("change", render);
+  document
+    .querySelectorAll("[data-tab]")
+    .forEach((b) => b.addEventListener("click", () => setTab(b.dataset.tab)));
+  const CHECKLIST_KEY = "misPontigues.checklist.history.v1";
+  const LEGACY_CHECKLIST_KEY = "misPontigues.checklist.v1";
+  const CHECK_ITEMS = [
+    ["room", "Ordenar habitación"],
+    ["face-clean", "Limpiarme la cara"],
+    ["face-moisturize", "Hidratarme la cara"],
+    ["makeup", "Maquillarme"],
+    ["hair", "Pelo planchado"],
+    ["shower", "Duchada"],
+    ["sleep", "Dormir 8 h"],
+  ];
+  let checklistMonth = localDateKey(new Date()).slice(0, 7);
+  function readChecklistHistory() {
+    try {
+      const history = JSON.parse(localStorage.getItem(CHECKLIST_KEY) || "{}");
+      if (history && typeof history === "object" && !Array.isArray(history))
+        return history;
+    } catch {}
+    return {};
+  }
+  function renderChecklistStats(history) {
+    const panel = $("checklistStats");
+    if (!panel) return;
+    const [year, month] = checklistMonth.split("-").map(Number);
+    const now = new Date();
+    const currentMonth = localDateKey(now).slice(0, 7);
+    const lastDay = new Date(year, month, 0).getDate();
+    const daysCounted = checklistMonth === currentMonth
+      ? now.getDate()
+      : Math.min(lastDay, checklistMonth < currentMonth ? lastDay : 0);
+    let checked = 0;
+    let fullDays = 0;
+    for (let day = 1; day <= daysCounted; day++) {
+      const key = `${checklistMonth}-${String(day).padStart(2, "0")}`;
+      const done = history[key] || {};
+      const count = CHECK_ITEMS.filter(([id]) => done[id]).length;
+      checked += count;
+      if (count === CHECK_ITEMS.length) fullDays++;
+    }
+    const total = daysCounted * CHECK_ITEMS.length;
+    const percent = total ? Math.round((checked / total) * 100) : 0;
+    const monthName = new Intl.DateTimeFormat("es-ES", {
+      month: "long", year: "numeric",
+    }).format(new Date(year, month - 1, 1));
+    panel.innerHTML = `
+      <div class="checklist-stats-head">
+        <div><h2>Mi mes en hábitos</h2><p>Tu constancia, día a día ♡</p></div>
+        <div class="checklist-month-nav">
+          <button type="button" data-checklist-month="prev" aria-label="Mes anterior">‹</button>
+          <strong>${monthName}</strong>
+          <button type="button" data-checklist-month="next" aria-label="Mes siguiente" ${checklistMonth >= currentMonth ? "disabled" : ""}>›</button>
+        </div>
+      </div>
+      <div class="checklist-progress-label"><span>Hábitos completados</span><strong>${percent}%</strong></div>
+      <div class="checklist-progress" role="progressbar" aria-label="Hábitos completados" aria-valuenow="${percent}" aria-valuemin="0" aria-valuemax="100"><span style="width:${percent}%"></span></div>
+      <div class="checklist-metrics">
+        <div><strong>${checked} <small>/ ${total}</small></strong><span>hábitos marcados</span></div>
+        <div><strong>${fullDays} <small>/ ${daysCounted}</small></strong><span>días completos</span></div>
+      </div>`;
+    panel.querySelector('[data-checklist-month="prev"]').addEventListener("click", () => {
+      const date = new Date(year, month - 2, 1);
+      checklistMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+      renderChecklistStats(history);
+    });
+    panel.querySelector('[data-checklist-month="next"]').addEventListener("click", () => {
+      if (checklistMonth >= currentMonth) return;
+      const date = new Date(year, month, 1);
+      checklistMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+      renderChecklistStats(history);
+    });
+  }
+  function wireChecklist() {
+    const today = localDateKey(new Date());
+    let history = readChecklistHistory();
+    try {
+      const legacy = JSON.parse(localStorage.getItem(LEGACY_CHECKLIST_KEY) || "null");
+      if (legacy?.date && legacy.done && !history[legacy.date]) {
+        history[legacy.date] = legacy.done;
+        localStorage.setItem(CHECKLIST_KEY, JSON.stringify(history));
+      }
+    } catch {}
+    const saved = history[today] || {};
+    document.querySelectorAll("[data-check]").forEach((input) => {
+      input.checked = Boolean(saved[input.dataset.check]);
+      input.closest(".check-row")?.classList.toggle("done", input.checked);
+      input.addEventListener("change", () => {
+        if (!history[today]) history[today] = {};
+        history[today][input.dataset.check] = input.checked;
+        try {
+          localStorage.setItem(CHECKLIST_KEY, JSON.stringify(history));
+        } catch {
+          toast("No se pudo guardar en este dispositivo");
+        }
+        renderChecklistStats(history);
+        input.closest(".check-row")?.classList.toggle("done", input.checked);
+        toast(input.checked ? "Pasito hecho ♡" : "Lo dejamos para luego");
+      });
+    });
+    renderChecklistStats(history);
+  }
+  read();
+  readStudies();
+  readEvents();
+  readRoutines();
+  setTab("home");
+  const RITUAL_KEY = "misPontigues.ritual.v1";
+  let ritualDone = (() => {
+    try {
+      return JSON.parse(localStorage.getItem(RITUAL_KEY) || "{}");
+    } catch {
+      return {};
+    }
+  })();
+  function renderRitual() {
+    const buttons = document.querySelectorAll("[data-ritual]");
+    let done = 0;
+    buttons.forEach((b) => {
+      const yes = Boolean(ritualDone[b.dataset.ritual]);
+      b.classList.toggle("done", yes);
+      b.querySelector(".ritual-check").textContent = yes ? "✓" : "○";
+      if (yes) done++;
+    });
+    const p = document.getElementById("ritualProgress");
+    if (p) p.textContent = done + " de 3 pasos completados";
+  }
+  function wireRitual() {
+    document.querySelectorAll("[data-ritual]").forEach((b) =>
+      b.addEventListener("click", () => {
+        const k = b.dataset.ritual;
+        ritualDone[k] = !ritualDone[k];
+        localStorage.setItem(RITUAL_KEY, JSON.stringify(ritualDone));
+        renderRitual();
+        toast(ritualDone[k] ? "Pasito hecho ♡" : "Lo dejamos para luego");
+      }),
+    );
+    $("ritualScrollBtn")?.addEventListener("click", () =>
+      document
+        .getElementById("ritualCard")
+        ?.scrollIntoView({ behavior: "smooth", block: "center" }),
+    );
+    $("surpriseBtn")?.addEventListener("click", () => {
+      const pool = items.filter((x) => x.status === "collection");
+      if (!pool.length) {
+        toast("Añade un producto y te sorprenderé ♡");
+        return;
+      }
+      const pick = pool[Math.floor(Math.random() * pool.length)];
+      toast("Hoy toca: " + pick.name + " ✨");
+      document.getElementById("search").value = pick.name;
+      setTab("collection");
+    });
+    renderRitual();
+  }
+  wireRitual();
+  wireChecklist();
+})();

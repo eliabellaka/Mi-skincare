@@ -1,9 +1,438 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f5a9c9"><title>Mis Potingues — Beauty Archive</title><link rel="icon" type="image/svg+xml" href="favicon.svg?v=1"><link rel="stylesheet" href="styles-mobile.css?v=1"></head><body><a class="skip-link" href="#content">Saltar al contenido</a>
-<div class="shell"><aside class="sidebar"><div class="logo"><span class="logo-icon">♡</span><div><div class="logo-name">Mis Potingues</div><div class="small">beauty archive</div></div></div><div class="nav-label">Mi espacio</div><nav class="nav" aria-label="Secciones"><button data-tab="home" class="active"><span class="nav-icon">⌂</span> Inicio</button><button data-tab="collection"><span class="nav-icon">▦</span> Mi colección</button><button data-tab="studies"><span class="nav-icon">✎</span> Estudios</button><button data-tab="need"><span class="nav-icon">↻</span> Por reponer</button><button data-tab="wishlist"><span class="nav-icon">♡</span> Wishlist</button><button data-tab="calendar"><span class="nav-icon">🗓️</span> Calendario</button><button data-tab="settings"><span class="nav-icon">⚙</span> Ajustes</button></nav><div class="sidebar-bottom"><strong>Tu lista, sin ruido</strong><span class="dot"></span>Datos guardados en este dispositivo<br>Tu estantería, a tu manera.</div></aside>
-<div class="workspace"><div class="kawaii-doodles" aria-hidden="true"><span class="doodle doodle-star">✦</span><span class="doodle doodle-heart">♡</span><span class="doodle doodle-flower">✿</span><span class="doodle doodle-bow">୨୧</span></div><header class="top"><div class="overline">Mi rincón · 2026</div><span class="tag">Solo para mí</span></header>
-<section class="hero home-only" id="homeHero"><div class="eyebrow">Mi lista / mi rincón</div><h1>Mi espacio</h1><p>Mi lista personal, mis cosas y mis pequeños caprichos.</p><div class="hero-actions"><button id="ritualScrollBtn" class="light">Mi ritual de hoy</button><button id="surpriseBtn" class="light">Elige algo por mí</button></div><span class="hero-ornament">mi pequeño universo</span><div class="hero-stickers" aria-hidden="true"><span class="sticker-bow">୨୧</span><span class="sticker-heart">♡</span><span class="sticker-spark">✦</span><span class="sticker-flower">✿</span></div></section>
-<section class="daily-checklist checklist-section home-only" id="dailyChecklist"><h2>Mi checklist de hoy</h2><div class="checklist-grid"><label class="check-row"><input type="checkbox" data-check="room"><span>Ordenar habitación</span></label><label class="check-row"><input type="checkbox" data-check="face-clean"><span>Limpiarme la cara</span></label><label class="check-row"><input type="checkbox" data-check="face-moisturize"><span>Hidratarme la cara</span></label><label class="check-row"><input type="checkbox" data-check="makeup"><span>Maquillarme</span></label><label class="check-row"><input type="checkbox" data-check="hair"><span>Pelo planchado</span></label><label class="check-row"><input type="checkbox" data-check="shower"><span>Duchada</span></label><label class="check-row"><input type="checkbox" data-check="sleep"><span>Dormir 8 h</span></label></div></section>
-<section class="ritual-card home-only" id="ritualCard"><div class="ritual-head"><h2>Mis tres pasitos</h2><span id="ritualProgress">0 de 3 pasos</span></div><div class="ritual-steps"><button class="ritual-step" data-ritual="morning"><span class="ritual-check">○</span><span><strong>Limpiar</strong><small>Empezar sin prisa</small></span></button><button class="ritual-step" data-ritual="care"><span class="ritual-check">○</span><span><strong>Cuidar</strong><small>Un gesto para ti</small></span></button><button class="ritual-step" data-ritual="spf"><span class="ritual-check">○</span><span><strong>Proteger</strong><small>Lo que importa</small></span></button></div></section><section class="week-preview home-only" id="weekPreview"><div class="week-head"><h2>Esta semana</h2><button type="button" id="weekCalendarBtn" class="light">Abrir calendario</button></div><div id="weekList" class="week-list"></div></section>
-<section class="stats home-only"><div class="stat"><div class="lbl">En mi estantería</div><div id="countProducts" class="val">0</div></div><div class="stat"><div class="lbl">Pendiente de reponer</div><div id="countNeed" class="val">0</div></div><div class="stat"><div class="lbl">Total wishlist</div><div id="countWishlist" class="val">0,00 €</div></div></section>
-<main><div class="bar" id="mainBar"><h2 id="sectionTitle">Mi colección ♡</h2><div class="actions"><button id="addBtn" class="primary">＋ Añadir producto</button><button id="routineBtn" class="light hidden">＋ Añadir rutina</button></div></div><div id="controls" class="tools"><input id="search" class="search" type="search" placeholder="Buscar por producto, marca o categoría..." aria-label="Buscar"><select id="categoryFilter" class="filter" aria-label="Filtrar categoría"></select></div><div id="content"></div></main><footer class="footer"><span>Mis Potingues © 2026</span><span>Hecho por mí, para mí ♡</span></footer></div></div>
-<dialog id="editDialog" class="dialog"><form id="productForm" class="modal"><h2 id="modalTitle">Añadir artículo ♡</h2><div class="fields"><div class="field wide"><label for="name">Nombre del artículo *</label><input id="name" required maxlength="110" placeholder="Ej. Crema hidratante facial"></div><div class="field"><label for="brand">Marca / tienda</label><input id="brand" maxlength="90" placeholder="Ej. Zara, IKEA, Amazon..."></div><div class="field"><label for="category">Categoría</label><input id="category" list="categories" maxlength="70" placeholder="Ej. ropa, casa, tecnología..."><datalist id="categories"></datalist></div><div class="field"><label for="price">Precio (€)</label><input id="price" type="number" step="0.01" min="0" max="999999" placeholder="12.95"></div><div class="field"><label for="quantity">Botes completos</label><div class="quantity-input"><input id="quantity" type="number" min="0" step="1" max="99999" value="1"><select id="quantityPercent" aria-label="Porcentaje del bote abierto"><option value="0">sin bote abierto</option><option value="25">+ 25%</option><option value="50">+ 50%</option><option value="75">+ 75%</option><option value="100">+ 100%</option></select></div><small class="quantity-help">Ejemplo: 2 botes completos y +25% del bote abierto.</small></div><div class="field wide"><label for="url">Enlace del artículo (https://...)</label><div class="link-row"><input id="url" type="url" placeholder="https://www.tienda.com/articulo"><button type="button" id="fetchLinkBtn" class="light">Rellenar datos</button></div><small id="linkStatus" class="link-status">Pega un enlace y buscaré el nombre, precio e imagen.</small></div><div class="field wide"><label for="image">URL de foto (opcional)</label><input id="image" type="url" placeholder="https://.../foto.jpg"></div><div class="field wide"><label for="notes">Notas</label><textarea id="notes" maxlength="500" placeholder="Mi opinión, para qué lo uso, tono, tamaño..."></textarea></div><div class="field"><label for="status">Estado</label><select id="status"><option value="collection">Lo tengo</option><option value="wishlist">Lo quiero</option></select></div><div class="field"><label for="needed">¿Necesito reponerlo?</label><select id="needed"><option value="false">No, todavía tengo</option><option value="true">Sí, comprar pronto</option></select></div></div><div class="modal-foot"><button type="button" id="cancel" class="light">Cancelar</button><button type="submit" class="primary">Guardar ♡</button></div></form></dialog><dialog id="eventDialog" class="dialog event-modal"><form id="eventForm" class="modal"><h2 id="eventModalTitle">Añadir evento</h2><div class="fields"><div class="field wide"><label for="eventTitle">Qué quiero recordar *</label><input id="eventTitle" required maxlength="120" placeholder="Ej. Cumpleaños, concierto, cita..."></div><div class="field"><label for="eventDate">Fecha *</label><input id="eventDate" type="date" required></div><div class="field"><label for="eventTime">Hora</label><input id="eventTime" type="time"></div><div class="field wide"><label for="eventNotes">Notas</label><textarea id="eventNotes" maxlength="500" placeholder="Un detalle para acordarme..."></textarea></div></div><div class="modal-foot"><button type="button" id="eventCancel" class="light">Cancelar</button><button type="submit" class="primary">Guardar evento</button></div></form></dialog><dialog id="routineDialog" class="dialog event-modal"><form id="routineForm" class="modal"><h2 id="routineModalTitle">Añadir rutina</h2><div class="fields"><div class="field wide"><label for="routineTitle">Qué quiero repetir *</label><input id="routineTitle" required maxlength="120" placeholder="Ej. Echarme Perspirex, comprar esponja..."></div><div class="field"><label for="routineStart">Empieza *</label><input id="routineStart" type="date" required></div><div class="field"><label for="routineEnd">Termina</label><input id="routineEnd" type="date"></div><div class="field"><label for="routineInterval">Cada</label><input id="routineInterval" type="number" min="1" max="365" value="1" required></div><div class="field"><label for="routineUnit">Frecuencia</label><select id="routineUnit"><option value="day">día(s)</option><option value="week">semana(s)</option><option value="month">mes(es)</option></select></div><div class="field wide"><label for="routineNotes">Notas</label><textarea id="routineNotes" maxlength="500" placeholder="Ej. Hasta que lo marque como comprado..."></textarea></div></div><div class="modal-foot"><button type="button" id="routineCancel" class="light">Cancelar</button><button type="submit" class="primary">Guardar rutina</button></div></form></dialog><script src="scripts-bows.js?v=7"></script></body></html>
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#f5a9c9" />
+    <title>Mis Potingues — Beauty Archive</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg?v=1" />
+    <link rel="stylesheet" href="styles-mobile.css?v=7" />
+  </head>
+  <body>
+    <a class="skip-link" href="#content">Saltar al contenido</a>
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="logo">
+          <span class="logo-icon">♡</span>
+          <div>
+            <div class="logo-name">Mis Potingues</div>
+            <div class="small">beauty archive</div>
+          </div>
+        </div>
+        <div class="nav-label">Mi espacio</div>
+        <nav class="nav" aria-label="Secciones">
+          <button data-tab="home" class="active">
+            <span class="nav-icon" aria-hidden="true"
+              ><svg viewBox="0 0 24 24">
+                <path d="m4 11 8-7 8 7M6 10v10h12V10" /></svg
+            ></span>
+            Inicio</button
+          ><button data-tab="collection">
+            <span class="nav-icon" aria-hidden="true"
+              ><svg viewBox="0 0 24 24">
+                <rect x="5" y="5" width="14" height="14" rx="1" />
+                <path d="M10 5v14M15 5v14M5 10h14M5 15h14" /></svg
+            ></span>
+            Mi colección</button
+          ><button data-tab="studies">
+            <span class="nav-icon" aria-hidden="true"
+              ><svg viewBox="0 0 24 24">
+                <path
+                  d="m4 17.5 12.8-12.8a2.1 2.1 0 0 1 3 3L7 20H4zM14.8 6.7l3 3"
+                /></svg
+            ></span>
+            Estudios</button
+          ><button data-tab="need">
+            <span class="nav-icon" aria-hidden="true"
+              ><svg viewBox="0 0 24 24">
+                <path d="M20 7v5h-5M20 12a8 8 0 1 1-2.3-5.7L20 9" /></svg
+            ></span>
+            Por reponer</button
+          ><button data-tab="wishlist">
+            <span class="nav-icon" aria-hidden="true"
+              ><svg viewBox="0 0 24 24">
+                <path
+                  d="M20.4 8.8c0 5-8.4 10-8.4 10s-8.4-5-8.4-10a4.6 4.6 0 0 1 8.4-2.6 4.6 4.6 0 0 1 8.4 2.6Z"
+                /></svg
+            ></span>
+            Wishlist</button
+          ><button data-tab="calendar">
+            <span class="nav-icon" aria-hidden="true"
+              ><svg viewBox="0 0 24 24">
+                <rect x="4" y="5" width="16" height="15" rx="3" />
+                <path d="M8 3.5v4M16 3.5v4M4 9h16" /></svg
+            ></span>
+            Calendario</button
+          ><button data-tab="settings">
+            <span class="nav-icon" aria-hidden="true"
+              ><svg viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="4.2" />
+                <path
+                  d="M12 3.5v2M12 18.5v2M20.5 12h-2M5.5 12h-2M18 6l-1.4 1.4M7.4 16.6 6 18M18 18l-1.4-1.4M7.4 7.4 6 6"
+                /></svg
+            ></span>
+            Ajustes
+          </button>
+        </nav>
+        <div class="sidebar-bottom">
+          <strong>Tu lista, sin ruido</strong><span class="dot"></span>Datos
+          guardados en este dispositivo<br />Tu estantería, a tu manera.
+        </div>
+      </aside>
+      <div class="workspace">
+        <div class="kawaii-doodles" aria-hidden="true">
+          <span class="doodle doodle-star">✦</span
+          ><span class="doodle doodle-heart">♡</span
+          ><span class="doodle doodle-flower">✿</span
+          ><span class="doodle doodle-bow">୨୧</span>
+        </div>
+        <header class="top">
+          <div class="overline">Mi rincón · 2026</div>
+          <span class="tag">Solo para mí</span>
+        </header>
+        <section class="hero home-only" id="homeHero">
+          <div class="eyebrow">Mi lista / mi rincón</div>
+          <h1>Mi espacio</h1>
+          <p>Mi lista personal, mis cosas y mis pequeños caprichos.</p>
+          <div class="hero-actions">
+            <button id="ritualScrollBtn" class="light">Mi ritual de hoy</button
+            ><button id="surpriseBtn" class="light">Elige algo por mí</button>
+          </div>
+          <span class="hero-ornament">mi pequeño universo</span>
+          <div class="hero-stickers" aria-hidden="true">
+            <span class="sticker-bow">୨୧</span
+            ><span class="sticker-heart">♡</span
+            ><span class="sticker-spark">✦</span
+            ><span class="sticker-flower">✿</span>
+          </div>
+        </section>
+        <section
+          class="daily-checklist checklist-section home-only"
+          id="dailyChecklist"
+        >
+          <h2>Mi checklist de hoy</h2>
+          <div class="checklist-grid">
+            <label class="check-row"
+              ><input type="checkbox" data-check="room" /><span
+                >Ordenar habitación</span
+              ></label
+            ><label class="check-row"
+              ><input type="checkbox" data-check="face-clean" /><span
+                >Limpiarme la cara</span
+              ></label
+            ><label class="check-row"
+              ><input type="checkbox" data-check="face-moisturize" /><span
+                >Hidratarme la cara</span
+              ></label
+            ><label class="check-row"
+              ><input type="checkbox" data-check="makeup" /><span
+                >Maquillarme</span
+              ></label
+            ><label class="check-row"
+              ><input type="checkbox" data-check="hair" /><span
+                >Pelo planchado</span
+              ></label
+            ><label class="check-row"
+              ><input type="checkbox" data-check="shower" /><span
+                >Duchada</span
+              ></label
+            ><label class="check-row"
+              ><input type="checkbox" data-check="sleep" /><span
+                >Dormir 8 h</span
+              ></label
+            >
+          </div>
+        </section>
+        <section class="checklist-stats home-only" id="checklistStats" aria-live="polite"></section>
+        <section class="ritual-card home-only" id="ritualCard">
+          <div class="ritual-head">
+            <h2>Mis tres pasitos</h2>
+            <span id="ritualProgress">0 de 3 pasos</span>
+          </div>
+          <div class="ritual-steps">
+            <button class="ritual-step" data-ritual="morning">
+              <span class="ritual-check">○</span
+              ><span
+                ><strong>Limpiar</strong><small>Empezar sin prisa</small></span
+              ></button
+            ><button class="ritual-step" data-ritual="care">
+              <span class="ritual-check">○</span
+              ><span
+                ><strong>Cuidar</strong><small>Un gesto para ti</small></span
+              ></button
+            ><button class="ritual-step" data-ritual="spf">
+              <span class="ritual-check">○</span
+              ><span
+                ><strong>Proteger</strong><small>Lo que importa</small></span
+              >
+            </button>
+          </div>
+        </section>
+        <section class="week-preview home-only" id="weekPreview">
+          <div class="week-head">
+            <h2>Esta semana</h2>
+            <button type="button" id="weekCalendarBtn" class="light">
+              Abrir calendario
+            </button>
+          </div>
+          <div id="weekList" class="week-list"></div>
+        </section>
+        <section class="stats home-only">
+          <div class="stat">
+            <div class="lbl">En mi estantería</div>
+            <div id="countProducts" class="val">0</div>
+          </div>
+          <div class="stat">
+            <div class="lbl">Pendiente de reponer</div>
+            <div id="countNeed" class="val">0</div>
+          </div>
+          <div class="stat">
+            <div class="lbl">Total wishlist</div>
+            <div id="countWishlist" class="val">0,00 €</div>
+          </div>
+        </section>
+        <main>
+          <div class="bar" id="mainBar">
+            <h2 id="sectionTitle">Mi colección ♡</h2>
+            <div class="actions">
+              <button id="addBtn" class="primary">＋ Añadir producto</button
+              ><button id="routineBtn" class="light hidden">
+                ＋ Añadir rutina
+              </button>
+            </div>
+          </div>
+          <div id="controls" class="tools">
+            <input
+              id="search"
+              class="search"
+              type="search"
+              placeholder="Buscar por producto, marca o categoría..."
+              aria-label="Buscar"
+            /><select
+              id="categoryFilter"
+              class="filter"
+              aria-label="Filtrar categoría"
+            ></select>
+          </div>
+          <div id="content"></div>
+        </main>
+        <footer class="footer">
+          <span>Mis Potingues © 2026</span><span>Hecho por mí, para mí ♡</span>
+        </footer>
+      </div>
+    </div>
+    <dialog id="editDialog" class="dialog">
+      <form id="productForm" class="modal">
+        <h2 id="modalTitle">Añadir artículo ♡</h2>
+        <div class="fields">
+          <div class="field wide">
+            <label for="name">Nombre del artículo *</label
+            ><input
+              id="name"
+              required
+              maxlength="110"
+              placeholder="Ej. Crema hidratante facial"
+            />
+          </div>
+          <div class="field">
+            <label for="brand">Marca / tienda</label
+            ><input
+              id="brand"
+              maxlength="90"
+              placeholder="Ej. Zara, IKEA, Amazon..."
+            />
+          </div>
+          <div class="field">
+            <label for="category">Categoría</label
+            ><input
+              id="category"
+              list="categories"
+              maxlength="70"
+              placeholder="Ej. ropa, casa, tecnología..."
+            /><datalist id="categories"></datalist>
+          </div>
+          <div class="field">
+            <label for="price">Precio (€)</label
+            ><input
+              id="price"
+              type="number"
+              step="0.01"
+              min="0"
+              max="999999"
+              placeholder="12.95"
+            />
+          </div>
+          <div class="field">
+            <label for="quantity">Botes completos</label>
+            <div class="quantity-input">
+              <input
+                id="quantity"
+                type="number"
+                min="0"
+                step="1"
+                max="99999"
+                value="1"
+              /><select
+                id="quantityPercent"
+                aria-label="Porcentaje del bote abierto"
+              >
+                <option value="0">sin bote abierto</option>
+                <option value="25">+ 25%</option>
+                <option value="50">+ 50%</option>
+                <option value="75">+ 75%</option>
+                <option value="100">+ 100%</option>
+              </select>
+            </div>
+            <small class="quantity-help"
+              >Ejemplo: 2 botes completos y +25% del bote abierto.</small
+            >
+          </div>
+          <div class="field wide">
+            <label for="url">Enlace del artículo (https://...)</label>
+            <div class="link-row">
+              <input
+                id="url"
+                type="url"
+                placeholder="https://www.tienda.com/articulo"
+              /><button type="button" id="fetchLinkBtn" class="light">
+                Rellenar datos
+              </button>
+            </div>
+            <small id="linkStatus" class="link-status"
+              >Pega un enlace y buscaré el nombre, precio e imagen.</small
+            >
+          </div>
+          <div class="field wide">
+            <label for="image">URL de foto (opcional)</label
+            ><input id="image" type="url" placeholder="https://.../foto.jpg" />
+          </div>
+          <div class="field wide">
+            <label for="notes">Notas</label
+            ><textarea
+              id="notes"
+              maxlength="500"
+              placeholder="Mi opinión, para qué lo uso, tono, tamaño..."
+            ></textarea>
+          </div>
+          <div class="field">
+            <label for="status">Estado</label
+            ><select id="status">
+              <option value="collection">Lo tengo</option>
+              <option value="wishlist">Lo quiero</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="needed">¿Necesito reponerlo?</label
+            ><select id="needed">
+              <option value="false">No, todavía tengo</option>
+              <option value="true">Sí, comprar pronto</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-foot">
+          <button type="button" id="cancel" class="light">Cancelar</button
+          ><button type="submit" class="primary">Guardar ♡</button>
+        </div>
+      </form>
+    </dialog>
+    <dialog id="eventDialog" class="dialog event-modal">
+      <form id="eventForm" class="modal">
+        <h2 id="eventModalTitle">Añadir evento</h2>
+        <div class="fields">
+          <div class="field wide">
+            <label for="eventTitle">Qué quiero recordar *</label
+            ><input
+              id="eventTitle"
+              required
+              maxlength="120"
+              placeholder="Ej. Cumpleaños, concierto, cita..."
+            />
+          </div>
+          <div class="field">
+            <label for="eventDate">Fecha *</label
+            ><input id="eventDate" type="date" required />
+          </div>
+          <div class="field">
+            <label for="eventTime">Hora</label
+            ><input id="eventTime" type="time" />
+          </div>
+          <div class="field wide">
+            <label for="eventNotes">Notas</label
+            ><textarea
+              id="eventNotes"
+              maxlength="500"
+              placeholder="Un detalle para acordarme..."
+            ></textarea>
+          </div>
+        </div>
+        <div class="modal-foot">
+          <button type="button" id="eventCancel" class="light">Cancelar</button
+          ><button type="submit" class="primary">Guardar evento</button>
+        </div>
+      </form>
+    </dialog>
+    <dialog id="routineDialog" class="dialog event-modal">
+      <form id="routineForm" class="modal">
+        <h2 id="routineModalTitle">Añadir rutina</h2>
+        <div class="fields">
+          <div class="field wide">
+            <label for="routineTitle">Qué quiero repetir *</label
+            ><input
+              id="routineTitle"
+              required
+              maxlength="120"
+              placeholder="Ej. Echarme Perspirex, comprar esponja..."
+            />
+          </div>
+          <div class="field">
+            <label for="routineStart">Empieza *</label
+            ><input id="routineStart" type="date" required />
+          </div>
+          <div class="field">
+            <label for="routineEnd">Termina</label
+            ><input id="routineEnd" type="date" />
+          </div>
+          <div class="field">
+            <label for="routineInterval">Cada</label
+            ><input
+              id="routineInterval"
+              type="number"
+              min="1"
+              max="365"
+              value="1"
+              required
+            />
+          </div>
+          <div class="field">
+            <label for="routineUnit">Frecuencia</label
+            ><select id="routineUnit">
+              <option value="day">día(s)</option>
+              <option value="week">semana(s)</option>
+              <option value="month">mes(es)</option>
+            </select>
+          </div>
+          <div class="field wide">
+            <label for="routineNotes">Notas</label
+            ><textarea
+              id="routineNotes"
+              maxlength="500"
+              placeholder="Ej. Hasta que lo marque como comprado..."
+            ></textarea>
+          </div>
+        </div>
+        <div class="modal-foot">
+          <button type="button" id="routineCancel" class="light">
+            Cancelar</button
+          ><button type="submit" class="primary">Guardar rutina</button>
+        </div>
+      </form>
+    </dialog>
+    <script src="scripts-bows.js?v=8"></script>
+  </body>
+</html>
