@@ -13,7 +13,7 @@
     />
     <link rel="icon" type="image/svg+xml" href="favicon.svg?v=1" />
     <link rel="manifest" href="manifest.webmanifest" />
-    <link rel="stylesheet" href="styles-mobile.css?v=20" />
+    <link rel="stylesheet" href="styles-mobile.css?v=21" />
   </head>
   <body>
     <a class="skip-link" href="#content">Saltar al contenido</a>
@@ -152,6 +152,15 @@
             >
           </div>
         </section>
+        <section class="week-preview home-only" id="weekPreview">
+          <div class="week-head">
+            <h2>Esta semana</h2>
+            <button type="button" id="weekCalendarBtn" class="light">
+              Abrir calendario
+            </button>
+          </div>
+          <div id="weekList" class="week-list"></div>
+        </section>
         <section class="checklist-stats home-only" id="checklistStats" aria-live="polite"></section>
         <section class="ritual-card home-only" id="ritualCard">
           <div class="ritual-head">
@@ -176,15 +185,6 @@
               >
             </button>
           </div>
-        </section>
-        <section class="week-preview home-only" id="weekPreview">
-          <div class="week-head">
-            <h2>Esta semana</h2>
-            <button type="button" id="weekCalendarBtn" class="light">
-              Abrir calendario
-            </button>
-          </div>
-          <div id="weekList" class="week-list"></div>
         </section>
         <section class="stats home-only">
           <div class="stat">
@@ -451,7 +451,7 @@
         </div>
       </div>
     </dialog>
-    <script src="scripts-bows.js?v=11"></script>
+    <script src="scripts-bows.js?v=12"></script>
     <script type="module" src="firebase-sync.js?v=10"></script>
     <script>
       if ("serviceWorker" in navigator) {

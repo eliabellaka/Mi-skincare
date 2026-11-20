@@ -44,6 +44,7 @@
   let items = [];
   let tab = "home",
     editing = null;
+  let calendarMonth = new Date();
   let routines = [];
   const studySubjects = [
     ["xarxes", "Xarxes de dades", "network"],
@@ -183,6 +184,25 @@
   }
   function saveStudies() {
     localStorage.setItem(STUDY_KEY, JSON.stringify(studyTasks));
+  }
+  function studyCalendarEvents() {
+    return studySubjects.flatMap(([id, name]) =>
+      (studyTasks[id] || [])
+        .filter(
+          (task) =>
+            task.date &&
+            /^\d{4}-\d{2}-\d{2}$/.test(task.date) &&
+            task.text,
+        )
+        .map((task) => ({
+          id: `study-${id}-${task.id}`,
+          title: task.text,
+          date: task.date,
+          time: "",
+          notes: name,
+          study: true,
+        })),
+    );
   }
   function studyIcon(kind) {
     const shapes =
@@ -784,11 +804,10 @@
       const start = new Date(r.start + "T12:00:00"),
         end = r.end ? new Date(r.end + "T12:00:00") : to;
       let cursor = new Date(start);
+      const anchorDay = start.getDate();
       const step = Math.max(1, Number(r.interval) || 1);
       while (cursor < from) {
-        if (r.unit === "week") cursor.setDate(cursor.getDate() + step * 7);
-        else if (r.unit === "month") cursor.setMonth(cursor.getMonth() + step);
-        else cursor.setDate(cursor.getDate() + step);
+        cursor = advanceRoutineDate(cursor, r.unit, step, anchorDay);
       }
       let guard = 0;
       while (cursor <= to && cursor <= end && guard < 500) {
@@ -802,13 +821,22 @@
           notes: r.notes || "",
           routine: true,
         });
-        if (r.unit === "week") cursor.setDate(cursor.getDate() + step * 7);
-        else if (r.unit === "month") cursor.setMonth(cursor.getMonth() + step);
-        else cursor.setDate(cursor.getDate() + step);
+        cursor = advanceRoutineDate(cursor, r.unit, step, anchorDay);
         guard++;
       }
     });
     return out;
+  }
+  function advanceRoutineDate(date, unit, step, anchorDay) {
+    const next = new Date(date);
+    if (unit === "week") next.setDate(next.getDate() + step * 7);
+    else if (unit === "month") {
+      const target = new Date(next.getFullYear(), next.getMonth() + step, 1, 12);
+      const lastDay = new Date(target.getFullYear(), target.getMonth() + 1, 0).getDate();
+      target.setDate(Math.min(anchorDay, lastDay));
+      return target;
+    } else next.setDate(next.getDate() + step);
+    return next;
   }
   function readEvents() {
     try {
@@ -889,6 +917,7 @@
           !String(item.title || "").toLocaleLowerCase("es").startsWith("mood:") &&
           item.notes !== "Check-in de Mis Potingues",
       )
+      .concat(studyCalendarEvents().filter((item) => item.date >= fromKey && item.date <= toKey))
       .concat(routineOccurrences(fromKey, toKey))
       .sort((a, b) =>
         (a.date + (a.time || "")).localeCompare(b.date + (b.time || "")),
@@ -1006,6 +1035,7 @@
     const fromKey = localDateKey(today),
       toKey = localDateKey(end);
     const shown = events
+      .concat(studyCalendarEvents())
       .concat(routineOccurrences(fromKey, toKey))
       .filter((x) => {
         const d = new Date(x.date + "T12:00:00");
@@ -1170,18 +1200,37 @@
   }
   function calendarView(box) {
     const wrap = e("div", "calendar-view");
-    const now = new Date();
-    const top = e("div", "calendar-top");
-    top.append(
-      e(
-        "h3",
-        "",
-        new Intl.DateTimeFormat("es-ES", {
-          month: "long",
-          year: "numeric",
-        }).format(now),
-      ),
+    const now = new Date(
+      calendarMonth.getFullYear(),
+      calendarMonth.getMonth(),
+      1,
     );
+    const top = e("div", "calendar-top");
+    const heading = e(
+      "h3",
+      "",
+      new Intl.DateTimeFormat("es-ES", {
+        month: "long",
+        year: "numeric",
+      }).format(now),
+    );
+    const monthControls = e("div", "calendar-month-controls");
+    const previous = btn("‹", () => {
+      calendarMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      render();
+    }, "calendar-month-button");
+    previous.setAttribute("aria-label", "Mes anterior");
+    const current = btn("Hoy", () => {
+      calendarMonth = new Date();
+      render();
+    }, "calendar-month-button calendar-current-button");
+    const next = btn("›", () => {
+      calendarMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+      render();
+    }, "calendar-month-button");
+    next.setAttribute("aria-label", "Mes siguiente");
+    monthControls.append(previous, current, next);
+    top.append(heading, monthControls);
     const grid = e("div", "calendar-grid");
     ["lun", "mar", "mié", "jue", "vie", "sáb", "dom"].forEach((d) =>
       grid.append(e("div", "calendar-weekday", d)),
@@ -1195,9 +1244,9 @@
     const monthEnd = localDateKey(
       new Date(now.getFullYear(), now.getMonth(), days),
     );
-    const calendarEvents = events.concat(
-      routineOccurrences(monthStart, monthEnd),
-    );
+    const calendarEvents = events
+      .concat(studyCalendarEvents())
+      .concat(routineOccurrences(monthStart, monthEnd));
     for (let i = 0; i < offset + days; i++) {
       const day = i - offset + 1;
       const cell = e(
@@ -1221,19 +1270,23 @@
         .forEach((x) => {
           const chip = e(
             "span",
-            "day-event" + (x.routine ? " routine-event" : ""),
+            "day-event" + (x.routine ? " routine-event" : "") + (x.study ? " study-event" : ""),
             x.title,
           );
-          chip.draggable = !x.routine;
+          chip.draggable = !x.routine && !x.study;
           chip.addEventListener("click", (ev) => {
             ev.stopPropagation();
             if (x.routine) {
               toast("Rutina: " + x.title + " · " + prettyDate(x.date));
               return;
             }
+            if (x.study) {
+              toast("Tarea de " + x.notes + ": edítala en Estudios.");
+              return;
+            }
             openEventForm(x);
           });
-          if (!x.routine)
+          if (!x.routine && !x.study)
             chip.addEventListener("dragstart", (ev) => {
               ev.dataTransfer.setData("text/plain", x.id);
               ev.stopPropagation();
@@ -1266,10 +1319,9 @@
     wrap.append(top, main);
     const list = e("div", "event-list");
     events
+      .concat(studyCalendarEvents())
       .filter((x) =>
-        x.date.startsWith(
-          now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0"),
-        ),
+        x.date.startsWith(localDateKey(now).slice(0, 7)),
       )
       .sort((x, y) => (x.date + x.time).localeCompare(y.date + y.time))
       .forEach((x) => {
@@ -1279,20 +1331,25 @@
           e("strong", "", x.title),
           e("small", "", prettyDate(x.date) + (x.time ? " · " + x.time : "")),
         );
-        const actions = e("div", "event-row-actions");
-        actions.append(
-          btn("Editar", () => openEventForm(x), "mini"),
-          btn(
-            "Borrar",
-            () => {
-              events = events.filter((y) => y.id !== x.id);
-              saveEvents();
-              render();
-            },
-            "mini danger",
-          ),
-        );
-        row.append(info, actions);
+        if (x.study) {
+          info.append(e("small", "study-event-source", "Estudios · " + x.notes));
+          row.append(info);
+        } else {
+          const actions = e("div", "event-row-actions");
+          actions.append(
+            btn("Editar", () => openEventForm(x), "mini"),
+            btn(
+              "Borrar",
+              () => {
+                events = events.filter((y) => y.id !== x.id);
+                saveEvents();
+                render();
+              },
+              "mini danger",
+            ),
+          );
+          row.append(info, actions);
+        }
         list.append(row);
       });
     routines.forEach((r) => {

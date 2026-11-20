@@ -4379,3 +4379,33 @@ main,
   .calendar-day .day-event { margin-top: 3px; padding: 2px 3px; font-size: 8px; }
   .calendar-week-tasks { padding: 17px; }
 }
+
+.calendar-month-controls {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.calendar-month-button {
+  display: inline-grid;
+  min-width: 38px;
+  min-height: 38px;
+  place-items: center;
+  padding: 0 10px;
+  border: 1px solid #edc1d5;
+  border-radius: 999px;
+  background: #fff;
+  color: #963f6c;
+  font: inherit;
+  font-size: 18px;
+  cursor: pointer;
+}
+.calendar-current-button { font-size: 12px; font-weight: 700; }
+.calendar-month-button:hover { background: #fff0f6; }
+.calendar-month-button:focus-visible {
+  outline: 3px solid #efb1cc;
+  outline-offset: 2px;
+}
+@media (max-width: 600px) {
+  .calendar-month-controls { gap: 4px; }
+  .calendar-month-button { min-width: 34px; min-height: 34px; padding-inline: 8px; }
+}
