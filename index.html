@@ -12,7 +12,7 @@
       rel="stylesheet"
     />
     <link rel="icon" type="image/svg+xml" href="favicon.svg?v=1" />
-    <link rel="stylesheet" href="styles-mobile.css?v=7" />
+    <link rel="stylesheet" href="styles-mobile.css?v=13" />
   </head>
   <body>
     <a class="skip-link" href="#content">Saltar al contenido</a>
@@ -94,7 +94,7 @@
         </div>
         <header class="top">
           <div class="overline">Mi rincón · 2026</div>
-          <span class="tag">Solo para mí</span>
+          <button id="accountOpen" class="light account-open" type="button">Iniciar sesión con Google</button>
         </header>
         <section class="hero home-only" id="homeHero">
           <div class="eyebrow">Mi lista / mi rincón</div>
@@ -433,6 +433,22 @@
         </div>
       </form>
     </dialog>
+    <dialog id="accountDialog" class="dialog account-dialog">
+      <div class="modal account-modal">
+        <h2 id="accountTitle">Tu espacio, en todos tus dispositivos ♡</h2>
+        <p class="account-intro">Entra con tu cuenta de Google para guardar y sincronizar tus datos.</p>
+        <button type="button" id="accountGoogle" class="light google-signin">
+          <span class="google-mark" aria-hidden="true">G</span>
+          <span>Continuar con Google</span>
+        </button>
+        <p id="accountStatus" class="account-status" role="status" aria-live="polite"></p>
+        <div class="modal-foot account-actions">
+          <button type="button" id="accountSignOut" class="light hidden">Cerrar sesión</button>
+          <button type="button" id="accountClose" class="primary">Cerrar</button>
+        </div>
+      </div>
+    </dialog>
     <script src="scripts-bows.js?v=8"></script>
+    <script type="module" src="firebase-sync.js?v=3"></script>
   </body>
 </html>

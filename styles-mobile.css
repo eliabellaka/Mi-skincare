@@ -4024,3 +4024,52 @@ main,
   .checklist-progress-label { margin-top: 16px; }
   .checklist-metrics > div { min-width: 0; flex: 1; }
 }
+
+.account-open { min-height: 40px; padding: 8px 14px; white-space: nowrap; }
+.account-dialog { width: min(92vw, 440px); max-width: 440px; }
+.account-modal { display: grid; gap: 16px; text-align: center; }
+.account-modal h2 { margin: 0; color: #713d59; }
+.account-intro { margin: 0; color: #916d80; line-height: 1.55; }
+.account-status { min-height: 1.3em; margin: 0; color: #713d59; font-size: 13px; }
+.account-status.error { color: #a52f53; }
+.account-actions { justify-content: center; flex-wrap: wrap; gap: 10px; }
+.google-signin {
+  display: flex;
+  width: 100%;
+  min-height: 54px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 1px solid #e8bfd1;
+  border-radius: 14px;
+  background: #fff;
+  color: #713d59;
+  font-size: 16px;
+  font-weight: 700;
+}
+.google-mark {
+  display: inline-grid;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  border: 1px solid #dadce0;
+  border-radius: 50%;
+  background: #fff;
+  color: #4285f4;
+  font: 700 13px Arial, sans-serif;
+}
+.account-actions button[hidden] { display: none; }
+@media (max-width: 600px) {
+  .account-open { min-height: 42px; padding-inline: 11px; font-size: 12px; }
+  .account-actions button { flex: 1 1 auto; }
+}
+@media (max-width: 760px) {
+  .workspace .top {
+    display: flex;
+    justify-content: flex-end;
+    min-height: 44px;
+    margin: 0 0 8px;
+  }
+  .workspace .top > .overline { display: none; }
+}
+.workspace .top { display: flex; justify-content: flex-end; }
