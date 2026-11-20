@@ -26,6 +26,7 @@ const syncedKeys = [
   "misPontigues.studies.v1",
   "misPontigues.routines.v1",
   "misPontigues.events.v1",
+  "misPontigues.weekTasks.v1",
   "misPontigues.mood.v1",
   "misPontigues.checklist.history.v1",
   "misPontigues.checklist.v1",
@@ -46,6 +47,7 @@ function showStatus(message, isError = false) {
 
 function updateAccountUI(user) {
   currentUser = user;
+  updatePersonalGreeting(user);
   openButton.textContent = user ? "Mi cuenta" : "Iniciar sesión con Google";
   $("accountGoogle").hidden = Boolean(user);
   $("accountSignOut").classList.toggle("hidden", !user);
@@ -56,6 +58,24 @@ function updateAccountUI(user) {
     ? `Conectada como ${user.email}.`
     : "Entra con tu cuenta de Google para guardar y sincronizar tus datos.";
   showStatus(user ? `Sesión iniciada como ${user.email}. Sincronizando…` : "");
+}
+
+function updatePersonalGreeting(user) {
+  const greeting = $("homeGreeting");
+  const welcome = $("homeWelcome");
+  if (!greeting || !welcome) return;
+
+  const displayName = user?.displayName?.trim();
+  const firstName = displayName
+    ? displayName.split(/\s+/)[0]
+    : user
+      ? "Elia"
+      : "";
+
+  greeting.textContent = firstName ? `Hola, ${firstName} ♡` : "Mi espacio";
+  welcome.textContent = firstName
+    ? `Esta es tu rutina de hoy, ${firstName}. Un pasito a la vez.`
+    : "Mi lista personal, mis cosas y mis pequeños caprichos.";
 }
 
 function reportError(error) {
@@ -189,7 +209,10 @@ $("accountSignOut").addEventListener("click", async () => {
     stopListening = null;
     appReady = false;
     updateAccountUI(null);
-    showStatus("Sesión cerrada. Tus datos siguen guardados en este dispositivo.");
+    syncedKeys.forEach((key) => localStorage.removeItem(key));
+    dialog.close();
+    showStatus("Sesión cerrada. Los datos siguen guardados en tu cuenta Firebase.");
+    location.reload();
   } catch (error) {
     reportError(error);
   }

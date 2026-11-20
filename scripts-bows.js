@@ -758,7 +758,9 @@
     if ($("url").value.trim()) autofillLink();
   });
   const EVENT_KEY = "misPontigues.events.v1";
+  const WEEK_TASKS_KEY = "misPontigues.weekTasks.v1";
   let events = [];
+  let weeklyTasks = {};
   let editingEvent = null;
   const ROUTINE_KEY = "misPontigues.routines.v1";
   function readRoutines() {
@@ -821,6 +823,19 @@
   function saveEvents() {
     localStorage.setItem(EVENT_KEY, JSON.stringify(events));
   }
+  function readWeeklyTasks() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(WEEK_TASKS_KEY) || "{}");
+      weeklyTasks = saved && typeof saved === "object" && !Array.isArray(saved)
+        ? saved
+        : {};
+    } catch {
+      weeklyTasks = {};
+    }
+  }
+  function saveWeeklyTasks() {
+    localStorage.setItem(WEEK_TASKS_KEY, JSON.stringify(weeklyTasks));
+  }
   function localDateKey(d) {
     const x = new Date(d);
     return (
@@ -837,6 +852,149 @@
       day: "numeric",
       month: "short",
     }).format(new Date(key + "T12:00:00"));
+  }
+  function weekRange(date = new Date()) {
+    const start = new Date(date);
+    start.setHours(0, 0, 0, 0);
+    start.setDate(start.getDate() - ((start.getDay() + 6) % 7));
+    const end = new Date(start);
+    end.setDate(end.getDate() + 6);
+    return { start, end, key: localDateKey(start) };
+  }
+  function weekTaskData(key) {
+    const saved = weeklyTasks[key];
+    if (Array.isArray(saved)) {
+      weeklyTasks[key] = { completed: {}, manual: saved };
+    } else if (!saved || typeof saved !== "object") {
+      weeklyTasks[key] = { completed: {}, manual: [] };
+    } else {
+      if (!saved.completed || typeof saved.completed !== "object") {
+        saved.completed = {};
+      }
+      if (!Array.isArray(saved.manual)) saved.manual = [];
+    }
+    return weeklyTasks[key];
+  }
+  function weeklyTasksView() {
+    const { start, end, key } = weekRange();
+    const weekData = weekTaskData(key);
+    const fromKey = localDateKey(start);
+    const toKey = localDateKey(end);
+    const calendarItems = events
+      .filter(
+        (item) =>
+          item.date >= fromKey &&
+          item.date <= toKey &&
+          !String(item.id || "").startsWith("mood-") &&
+          !String(item.title || "").toLocaleLowerCase("es").startsWith("mood:") &&
+          item.notes !== "Check-in de Mis Potingues",
+      )
+      .concat(routineOccurrences(fromKey, toKey))
+      .sort((a, b) =>
+        (a.date + (a.time || "")).localeCompare(b.date + (b.time || "")),
+      );
+    const tasks = calendarItems
+      .map((item) => ({
+        id: item.id,
+        title: item.title,
+        date: item.date,
+        time: item.time,
+        automatic: true,
+        done: Boolean(weekData.completed[item.id]),
+      }))
+      .concat(
+        weekData.manual
+          .filter(
+            (task) =>
+              !String(task.title || "")
+                .toLocaleLowerCase("es")
+                .startsWith("mood:") &&
+              task.notes !== "Check-in de Mis Potingues",
+          )
+          .map((task) => ({ ...task, automatic: false })),
+      );
+    const card = e("aside", "calendar-week-tasks");
+    const header = e("div", "calendar-week-head");
+    const heading = e("div");
+    heading.append(
+      e("span", "calendar-kicker", "TU SEMANA"),
+      e("h4", "", "Tareas de esta semana"),
+      e("p", "", prettyDate(localDateKey(start)) + " — " + prettyDate(localDateKey(end))),
+    );
+    header.append(heading, e("span", "calendar-week-spark", "✦"));
+
+    const form = e("form", "calendar-task-form");
+    const input = e("input");
+    input.type = "text";
+    input.maxLength = 100;
+    input.placeholder = "Añade una tarea…";
+    input.setAttribute("aria-label", "Nueva tarea de esta semana");
+    input.required = true;
+    const add = e("button", "calendar-task-add", "+");
+    add.type = "submit";
+    add.setAttribute("aria-label", "Añadir tarea");
+    form.append(input, add);
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const title = input.value.trim();
+      if (!title) return;
+      weekData.manual.push({ id: crypto.randomUUID(), title, done: false });
+      saveWeeklyTasks();
+      render();
+    });
+
+    const list = e("div", "calendar-task-list");
+    if (!tasks.length) {
+      list.append(e("p", "calendar-task-empty", "Los eventos de esta semana aparecerán aquí automáticamente."));
+    }
+    tasks.forEach((task) => {
+      const row = e("div", "calendar-task-row" + (task.done ? " is-done" : ""));
+      const label = e("label", "calendar-task-label");
+      const checkbox = e("input");
+      checkbox.type = "checkbox";
+      checkbox.checked = Boolean(task.done);
+      checkbox.setAttribute("aria-label", "Marcar como completada: " + task.title);
+      checkbox.addEventListener("change", () => {
+        if (task.automatic) weekData.completed[task.id] = checkbox.checked;
+        else task.done = checkbox.checked;
+        saveWeeklyTasks();
+        render();
+      });
+      const text = e("span", "calendar-task-text");
+      text.append(e("span", "", task.title));
+      if (task.automatic) {
+        text.append(
+          e("small", "", prettyDate(task.date) + (task.time ? " · " + task.time : "")),
+        );
+      }
+      label.append(checkbox, text);
+      row.append(label);
+      if (!task.automatic) {
+        const remove = btn("×", () => {
+          weekData.manual = weekData.manual.filter((item) => item.id !== task.id);
+          saveWeeklyTasks();
+          render();
+        }, "calendar-task-remove");
+        remove.setAttribute("aria-label", "Eliminar tarea: " + task.title);
+        row.append(remove);
+      }
+      list.append(row);
+    });
+    const completed = tasks.filter((task) => task.done).length;
+    const progress = e("div", "calendar-task-progress");
+    progress.setAttribute("aria-live", "polite");
+    progress.append(
+      e("span", "", tasks.length ? completed + " de " + tasks.length + " completadas" : "Tu semana, a tu ritmo"),
+    );
+    if (tasks.length) {
+      const track = e("span", "calendar-task-track");
+      const fill = e("span", "calendar-task-fill");
+      fill.style.width = Math.round((completed / tasks.length) * 100) + "%";
+      track.append(fill);
+      progress.append(track);
+    }
+    card.append(header, form, list, progress);
+    return card;
   }
   function renderWeekPreview() {
     const list = $("weekList");
@@ -1103,7 +1261,9 @@
       });
       grid.append(cell);
     }
-    wrap.append(top, grid);
+    const main = e("div", "calendar-main");
+    main.append(grid, weeklyTasksView());
+    wrap.append(top, main);
     const list = e("div", "event-list");
     events
       .filter((x) =>
@@ -1374,6 +1534,7 @@
   read();
   readStudies();
   readEvents();
+  readWeeklyTasks();
   readRoutines();
   setTab("home");
   const RITUAL_KEY = "misPontigues.ritual.v1";

@@ -13,7 +13,7 @@
     />
     <link rel="icon" type="image/svg+xml" href="favicon.svg?v=1" />
     <link rel="manifest" href="manifest.webmanifest" />
-    <link rel="stylesheet" href="styles-mobile.css?v=14" />
+    <link rel="stylesheet" href="styles-mobile.css?v=20" />
   </head>
   <body>
     <a class="skip-link" href="#content">Saltar al contenido</a>
@@ -102,8 +102,8 @@
         </header>
         <section class="hero home-only" id="homeHero">
           <div class="eyebrow">Mi lista / mi rincón</div>
-          <h1>Mi espacio</h1>
-          <p>Mi lista personal, mis cosas y mis pequeños caprichos.</p>
+          <h1 id="homeGreeting">Mi espacio</h1>
+          <p id="homeWelcome">Mi lista personal, mis cosas y mis pequeños caprichos.</p>
           <div class="hero-actions">
             <button id="ritualScrollBtn" class="light">Mi ritual de hoy</button
             ><button id="surpriseBtn" class="light">Elige algo por mí</button>
@@ -452,8 +452,8 @@
         </div>
       </div>
     </dialog>
-    <script src="scripts-bows.js?v=8"></script>
-    <script type="module" src="firebase-sync.js?v=5"></script>
+    <script src="scripts-bows.js?v=11"></script>
+    <script type="module" src="firebase-sync.js?v=9"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {

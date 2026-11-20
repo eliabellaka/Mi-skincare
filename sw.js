@@ -1,4 +1,4 @@
-const CACHE_NAME = "mis-potingues-v3";
+const CACHE_NAME = "mis-potingues-v12";
 const APP_FILES = [
   "./",
   "./index.html",
@@ -53,16 +53,30 @@ self.addEventListener("fetch", (event) => {
   }
 
   event.respondWith(
-    caches.match(request, { ignoreSearch: true }).then(
-      (cached) =>
-        cached ||
-        fetch(request).then((response) => {
-          if (response.ok) {
-            const copy = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+    (async () => {
+      const cached = await caches.match(request, { ignoreSearch: true });
+      const isCode = request.destination === "script" || request.destination === "style";
+      if (isCode) {
+        try {
+          const fresh = await fetch(request);
+          if (fresh.ok) {
+            const copy = fresh.clone();
+            await caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
           }
-          return response;
-        }),
-    ),
+          return fresh;
+        } catch (error) {
+          if (cached) return cached;
+          throw error;
+        }
+      }
+      if (cached) return cached;
+      return fetch(request).then((response) => {
+        if (response.ok) {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+        }
+        return response;
+      });
+    })(),
   );
 });
