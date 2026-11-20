@@ -1,4 +1,4 @@
-const CACHE_NAME = "mis-potingues-v2";
+const CACHE_NAME = "mis-potingues-v3";
 const APP_FILES = [
   "./",
   "./index.html",

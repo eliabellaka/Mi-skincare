@@ -177,6 +177,7 @@ $("accountGoogle").addEventListener("click", async () => {
     const provider = new GoogleAuthProvider();
     const credential = await signInWithPopup(auth, provider);
     updateAccountUI(credential.user);
+    dialog.close();
   } catch (error) {
     reportError(error);
   }
