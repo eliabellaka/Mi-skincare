@@ -2,11 +2,9 @@ import { firebaseConfig } from "./firebase-config.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js";
 import {
   getAuth,
-  getRedirectResult,
   GoogleAuthProvider,
   onAuthStateChanged,
   signInWithPopup,
-  signInWithRedirect,
   signOut,
 } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-auth.js";
 import {
@@ -177,11 +175,8 @@ $("accountGoogle").addEventListener("click", async () => {
   try {
     showStatus("Conectando con Google…");
     const provider = new GoogleAuthProvider();
-    if (window.matchMedia("(max-width: 760px), (pointer: coarse)").matches) {
-      await signInWithRedirect(auth, provider);
-    } else {
-      await signInWithPopup(auth, provider);
-    }
+    const credential = await signInWithPopup(auth, provider);
+    updateAccountUI(credential.user);
   } catch (error) {
     reportError(error);
   }
@@ -205,7 +200,6 @@ if (!configured) {
   const app = initializeApp(firebaseConfig);
   auth = getAuth(app);
   db = getFirestore(app);
-  getRedirectResult(auth).catch(reportError);
   onAuthStateChanged(auth, async (user) => {
     appReady = false;
     stopListening?.();
