@@ -115,6 +115,8 @@ Storage.prototype.setItem = function (key, value) {
 async function startSync(user) {
   const dataCollection = collection(db, "users", user.uid, "appData");
   const remote = await getDocs(dataCollection);
+  if (currentUser?.uid !== user.uid) return;
+
   const remoteKeys = new Set();
   let localWasUpdated = false;
 
@@ -132,6 +134,7 @@ async function startSync(user) {
   // First account/device: seed the cloud from existing local data. If the account
   // already has cloud data, it wins for keys present there; missing keys are kept.
   for (const key of syncedKeys) {
+    if (currentUser?.uid !== user.uid) return;
     const localValue = localStorage.getItem(key);
     if (localValue !== null && !remoteKeys.has(key)) {
       await setDoc(doc(dataCollection, key), {
@@ -212,7 +215,7 @@ $("accountSignOut").addEventListener("click", async () => {
     syncedKeys.forEach((key) => localStorage.removeItem(key));
     dialog.close();
     showStatus("Sesión cerrada. Los datos siguen guardados en tu cuenta Firebase.");
-    location.reload();
+    location.replace(location.pathname + location.search + location.hash);
   } catch (error) {
     reportError(error);
   }

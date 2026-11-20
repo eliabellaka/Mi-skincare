@@ -4265,6 +4265,11 @@ main,
 }
 .workspace .top { display: flex; justify-content: flex-end; }
 
+/* Keep the home title vertically aligned after removing its eyebrow label. */
+#homeHero > h1:first-child {
+  margin-top: 0;
+}
+
 /* Softer calendar styling, keeping the existing rose palette. */
 .calendar-view {
   padding: clamp(16px, 2.4vw, 28px);
