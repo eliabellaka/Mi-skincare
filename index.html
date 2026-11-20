@@ -12,7 +12,8 @@
       rel="stylesheet"
     />
     <link rel="icon" type="image/svg+xml" href="favicon.svg?v=1" />
-    <link rel="stylesheet" href="styles-mobile.css?v=13" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="stylesheet" href="styles-mobile.css?v=14" />
   </head>
   <body>
     <a class="skip-link" href="#content">Saltar al contenido</a>
@@ -80,6 +81,9 @@
             Ajustes
           </button>
         </nav>
+        <button id="accountOpen" class="light account-open account-access" type="button">
+          Iniciar sesión con Google
+        </button>
         <div class="sidebar-bottom">
           <strong>Tu lista, sin ruido</strong><span class="dot"></span>Datos
           guardados en este dispositivo<br />Tu estantería, a tu manera.
@@ -94,7 +98,7 @@
         </div>
         <header class="top">
           <div class="overline">Mi rincón · 2026</div>
-          <button id="accountOpen" class="light account-open" type="button">Iniciar sesión con Google</button>
+          <span class="tag">Solo para mí</span>
         </header>
         <section class="hero home-only" id="homeHero">
           <div class="eyebrow">Mi lista / mi rincón</div>
@@ -450,5 +454,14 @@
     </dialog>
     <script src="scripts-bows.js?v=8"></script>
     <script type="module" src="firebase-sync.js?v=3"></script>
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("./sw.js").catch((error) => {
+            console.error("No se pudo registrar el service worker:", error);
+          });
+        });
+      }
+    </script>
   </body>
 </html>

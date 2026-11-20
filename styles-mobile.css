@@ -4026,6 +4026,19 @@ main,
 }
 
 .account-open { min-height: 40px; padding: 8px 14px; white-space: nowrap; }
+.account-access {
+  display: flex;
+  width: 100%;
+  min-height: 46px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 12px;
+  border: 1px solid #e8a7c5;
+  border-radius: 14px;
+  background: #fff7fb;
+  color: #963f6c;
+  font-weight: 700;
+}
 .account-dialog { width: min(92vw, 440px); max-width: 440px; }
 .account-modal { display: grid; gap: 16px; text-align: center; }
 .account-modal h2 { margin: 0; color: #713d59; }
